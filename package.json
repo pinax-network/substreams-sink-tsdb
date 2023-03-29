@@ -1,0 +1,58 @@
+{
+    "name": "substreams-sink-victoria-metrics",
+    "version": "0.0.1",
+    "description": "Substreams VictoriaMetrics sink module",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "bin": {
+        "substreams-sink-victoria-metrics": "dist/bin/cli.js"
+    },
+    "repository": "git@github.com:pinax-network/substreams-sink-victoria-metrics.git",
+    "keywords": [
+        "substreams",
+        "streamingfast",
+        "firehose",
+        "thegraph",
+        "pinax"
+    ],
+    "author": {
+        "name": "Francois",
+        "email": "francois@pinax.network"
+    },
+    "files": [
+        "dist"
+    ],
+    "contributors": [
+        {
+            "name": "Francois",
+            "email": "francois@pinax.network"
+        },
+        {
+            "name": "Denis",
+            "email": "denis@pinax.network"
+        }
+    ],
+    "license": "MIT OR Apache-2.0",
+    "scripts": {
+        "prepublishOnly": "tsc",
+        "build": "tsup index.ts bin/cli.ts --dts",
+        "pkg": "ncc build bin/cli.ts -o build && pkg build/index.js",
+        "codegen": "buf generate proto"
+    },
+    "dependencies": {
+        "commander": "10.x",
+        "dotenv": "16.x",
+        "substreams": "^0.5.2",
+        "winston": "3.x"
+    },
+    "devDependencies": {
+        "@bufbuild/buf": "1.x",
+        "@bufbuild/protoc-gen-connect-es": "0.8.x",
+        "@bufbuild/protoc-gen-es": "1.x",
+        "@types/node": "*",
+        "@vercel/ncc": "0.36.x",
+        "pkg": "5.x",
+        "tsup": "6.x",
+        "typescript": "5.x"
+    }
+}
