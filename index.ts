@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import crypto from "node:crypto";
-import { Substreams, download, timeout } from "substreams";
-import { init } from "./src/victoria_metrics";
+import { Substreams, download, timeout, PrometheusOperations } from "substreams";
+import { VictoriaMetrics } from "./src/victoria_metrics";
 import { logger } from "./src/logger";
 
 // default substreams options
@@ -71,11 +71,16 @@ export async function run(spkg: string, options: {
     });
 
     // Initialize VictoriaMetrics connections
-    const metrics = init(username, password, address, port);
+    const metrics = new VictoriaMetrics({username, password, address, port});
+    await metrics.connect();
 
     // Send messages to queue
-    substreams.on("anyMessage", message => {
-        logger.info(JSON.stringify({hash, outputModule, message}));
+    substreams.on("anyMessage", (message: PrometheusOperations) => {
+        for ( const operation of message?.operations || [] ) {
+            logger.info(JSON.stringify({hash, operation, message}));
+            // TO-DO
+            metrics.push(operation);
+        }
     });
 
     substreams.on("cursor", cursor => {
