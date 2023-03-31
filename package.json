@@ -36,8 +36,7 @@
     "scripts": {
         "prepublishOnly": "tsc",
         "build": "tsup index.ts bin/cli.ts --dts",
-        "pkg": "ncc build bin/cli.ts -o build && pkg build/index.js",
-        "codegen": "buf generate proto"
+        "pkg": "ncc build bin/cli.ts -o build && pkg build/index.js"
     },
     "dependencies": {
         "substreams": "0.5.x",
