@@ -1,4 +1,4 @@
-import { download, createHash, Clock } from "substreams";
+import { download, createHash, Clock, PrometheusOperations } from "substreams";
 import { run, logger, RunOptions } from "substreams-sink";
 
 import pkg from "./package.json";
@@ -39,7 +39,7 @@ export async function action(manifest: string, moduleName: string, options: Acti
     // Run substreams
     const substreams = run(spkg, moduleName, options);
 
-    substreams.on("anyMessage", async (message, clock: Clock, typeName: string) => {
+    substreams.on("anyMessage", async (message: PrometheusOperations, clock: Clock, typeName: string) => {
         if ( typeName != TYPE_NAME ) return;
         const headers = { clock, hash, typeName };
         victoria.sendToQueue(message, headers);
