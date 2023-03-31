@@ -40,15 +40,10 @@
         "codegen": "buf generate proto"
     },
     "dependencies": {
-        "commander": "10.x",
-        "dotenv": "16.x",
-        "substreams": "^0.5.2",
-        "winston": "3.x"
+        "substreams": "0.5.x",
+        "substreams-sink": "0.2.x"
     },
     "devDependencies": {
-        "@bufbuild/buf": "1.x",
-        "@bufbuild/protoc-gen-connect-es": "0.8.x",
-        "@bufbuild/protoc-gen-es": "1.x",
         "@types/node": "*",
         "@vercel/ncc": "0.36.x",
         "pkg": "5.x",

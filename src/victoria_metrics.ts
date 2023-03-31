@@ -1,3 +1,4 @@
+import { Clock, PrometheusOperations } from "substreams";
 import {
     DEFAULT_USERNAME,
     DEFAULT_PASSWORD,
@@ -13,11 +14,11 @@ export class VictoriaMetrics {
 
     private connection?: any;
 
-    constructor(options: {username?: string, password?: string, address?: string, port?: number}) {
-        if ( options.username ) this.username = options.username;
-        if ( options.password ) this.password = options.password;
-        if ( options.address ) this.address = options.address;
-        if ( options.port ) this.port = options.port;
+    constructor(username?: string, password?: string, address?: string, port?: number) {
+        if ( username ) this.username = username;
+        if ( password ) this.password = password;
+        if ( address ) this.address = address;
+        if ( port ) this.port = port;
     }
 
     // TO-DO
@@ -26,7 +27,12 @@ export class VictoriaMetrics {
     }
 
     // TO-DO
-    async push(message: any) {
-        console.log(message);
+    async init() {
+        console.log("TO-DO");
+    }
+
+    // TO-DO
+    async sendToQueue(message: PrometheusOperations, headers: { hash: string, typeName: string, clock: Clock}) {
+        console.log(message, headers);
     }
 }
