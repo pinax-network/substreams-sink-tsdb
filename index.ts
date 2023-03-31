@@ -13,6 +13,7 @@ export const DEFAULT_USERNAME = '';
 export const DEFAULT_PASSWORD = '';
 export const DEFAULT_ADDRESS = 'localhost';
 export const DEFAULT_PORT = 8428;
+export const TYPE_NAME = 'pinax.substreams.sink.prometheus.v1.PrometheusOperations';
 
 // Custom user options interface
 interface ActionOptions extends RunOptions {
@@ -39,6 +40,7 @@ export async function action(manifest: string, moduleName: string, options: Acti
     const substreams = run(spkg, moduleName, options);
 
     substreams.on("anyMessage", async (message, clock: Clock, typeName: string) => {
+        if ( typeName != TYPE_NAME ) return;
         const headers = { clock, hash, typeName };
         victoria.sendToQueue(message, headers);
     });
