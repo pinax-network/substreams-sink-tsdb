@@ -13,6 +13,7 @@ export const DEFAULT_USERNAME = '';
 export const DEFAULT_PASSWORD = '';
 export const DEFAULT_ADDRESS = 'localhost';
 export const DEFAULT_PORT = 8428;
+export const DEFAULT_SCRAPE_INTERVAL = 30;
 export const TYPE_NAME = 'pinax.substreams.sink.prometheus.v1.PrometheusOperations';
 
 // Custom user options interface
@@ -21,6 +22,7 @@ interface ActionOptions extends RunOptions {
     port: number;
     username: string;
     password: string;
+    scrape_interval: number;
 }
 
 export async function action(manifest: string, moduleName: string, options: ActionOptions) {
@@ -29,10 +31,10 @@ export async function action(manifest: string, moduleName: string, options: Acti
     const hash = createHash(spkg);
 
     // Get command options
-    const { address, port, username, password } = options;
+    const { address, port, username, password, scrape_interval } = options;
 
     // Initialize VictoriaMetrics
-    const victoria = new VictoriaMetrics(username, password, address, port);
+    const victoria = new VictoriaMetrics(username, password, address, port, scrape_interval);
     await victoria.init();
     console.log(`Connecting to VictoriaMetrics: ${address}:${port}`);
 

@@ -39,6 +39,7 @@
         "pkg": "ncc build bin/cli.ts -o build && pkg build/index.js"
     },
     "dependencies": {
+        "prom-client": "^14.2.0",
         "substreams": "0.5.x",
         "substreams-sink": "0.2.x"
     },
