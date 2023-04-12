@@ -6,9 +6,22 @@ import {
     DEFAULT_PORT,
     DEFAULT_SCRAPE_INTERVAL,
 } from "../index";
-//import { register } from "./server";
-//import { logger } from "../index";
-import { handleOperation, fetchMetrics } from "./prom";
+import {handleOperation, register} from "substreams-sink-prometheus"
+
+export async function fetchMetrics(epoch: number):Promise<string> {
+    const metrics =  await register.metrics()
+    const lines = metrics.split("\n")
+    const arr = Array<string>()
+    for(let i=0; i<lines.length; i++){
+        const line = lines[i]
+        if (line == "" || line[0] =='#') {
+            arr.push(line)
+            continue
+        }
+        arr.push(`${line} ${epoch}`)
+    }
+    return arr.join('\n')
+}
 
 export class VictoriaMetrics {
     private readonly username: string = DEFAULT_USERNAME;
@@ -42,7 +55,7 @@ export class VictoriaMetrics {
 
     // TO-DO
     async sendToQueue(message: PrometheusOperations, headers: { hash: string, typeName: string, clock: Clock}) {
-        console.log("******", message, headers);
+        console.log(message, headers);
         const epoch = headers.clock.timestamp? Number(headers.clock.timestamp?.seconds) : 0
         for(let i=0; i<message.operations.length; i++){
             let op = message.operations[i]
