@@ -1,19 +1,11 @@
-import { PrometheusOperations, Clock } from "substreams";
-import {
-    DEFAULT_USERNAME,
-    DEFAULT_PASSWORD,
-    DEFAULT_ADDRESS,
-    DEFAULT_PORT,
-    DEFAULT_SCRAPE_INTERVAL,
-} from "../index";
-import {handleOperation, register} from "substreams-sink-prometheus"
+import { Clock } from "substreams";
+import { logger, register } from "substreams-sink-prometheus"
 
 export async function fetchMetrics(epoch: number):Promise<string> {
     const metrics =  await register.metrics()
+    const arr = [];
     const lines = metrics.split("\n")
-    const arr = Array<string>()
-    for(let i=0; i<lines.length; i++){
-        const line = lines[i]
+    for ( const line of lines ) {
         if (line == "" || line[0] =='#') {
             arr.push(line)
             continue
@@ -23,55 +15,18 @@ export async function fetchMetrics(epoch: number):Promise<string> {
     return arr.join('\n')
 }
 
-export class VictoriaMetrics {
-    private readonly username: string = DEFAULT_USERNAME;
-    private readonly password: string = DEFAULT_PASSWORD;
-    private readonly address: string = DEFAULT_ADDRESS;
-    private readonly port: number = DEFAULT_PORT;
-    private readonly scrapeInterval = DEFAULT_SCRAPE_INTERVAL;
-
-    private connection?: any;
-    private nextPush = 0;
-    private pushUrl: string
-
-    constructor(username?: string, password?: string, address?: string, port?: number, scapeInterval?: number) {
-        if ( username ) this.username = username;
-        if ( password ) this.password = password;
-        if ( address ) this.address = address;
-        if ( port ) this.port = port;
-        if ( scapeInterval ) this.scrapeInterval = this.scrapeInterval;
-        this.pushUrl = `http://${address}:${port}/api/v1/import/prometheus`
-    }
-
-    // TO-DO
-    async connect() {
-        this.connection = true;
-    }
-
-    // TO-DO
-    async init() {
-        console.log("TO-DO");
-    }
-
-    // TO-DO
-    async sendToQueue(message: PrometheusOperations, headers: { hash: string, typeName: string, clock: Clock}) {
-        console.log(message, headers);
-        const epoch = headers.clock.timestamp? Number(headers.clock.timestamp?.seconds) : 0
-        for(let i=0; i<message.operations.length; i++){
-            let op = message.operations[i]
-         //  console.log(op)
-            handleOperation(op)
-        }
-                
-        if (epoch >= this.nextPush) {
-            const data = await fetchMetrics(epoch)
-            console.log(data)
-            await fetch(this.pushUrl, {
-                method: 'POST', 
-                body: data
-            });
-            this.nextPush = epoch + this.scrapeInterval
-        }
-    }
+export async function handleImport(url: string, scrape_interval: number, clock: Clock) {
+    if (!clock.timestamp) return;
+    const { nanos, seconds } = clock.timestamp;
+    const epoch = Number(seconds);
+    if ( nanos != 0 ) return; // skip blocks with partial timestamps
+    if ( epoch % scrape_interval != 0 ) return; // only handle epoch intervals
+    logger.info("import", {epoch, clock});
+    const data = await fetchMetrics(epoch);
+    const response = await fetch(url, {
+        method: 'POST',
+        body: data
+    });
+    logger.info("response", {response});
 }
 
