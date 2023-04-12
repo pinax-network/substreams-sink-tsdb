@@ -10,7 +10,7 @@ logger.defaultMeta = { service: pkg.name };
 export { logger };
 
 // default user options
-export const DEFAULT_ADDRESS = 'localhost';
+export const DEFAULT_ADDRESS = '127.0.0.1';
 export const DEFAULT_PORT = 8428;
 export const DEFAULT_SCRAPE_INTERVAL = 30;
 export const TYPE_NAME = 'pinax.substreams.sink.prometheus.v1.PrometheusOperations';
