@@ -33,9 +33,12 @@ export async function action(manifest: string, moduleName: string, options: Acti
     // Run substreams
     const substreams = run(spkg, moduleName, options);
 
-    substreams.on("anyMessage", async (message: PrometheusOperations, clock: Clock, typeName: string) => {
+    substreams.on("anyMessage", (message: PrometheusOperations, clock: Clock, typeName: string) => {
         if ( typeName != TYPE_NAME ) return;
         handleOperations(message);
+    });
+
+    substreams.on("clock", clock => {
         handleImport(url, scrape_interval, clock);
     });
     substreams.start(options.delayBeforeStart);

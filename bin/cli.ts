@@ -6,7 +6,7 @@ import pkg from "../package.json";
 
 const program = cli.program(pkg);
 const command = cli.run(program, pkg);
-command.option('-s --scrape_interval <int>', 'Scrape Interval', String(DEFAULT_SCRAPE_INTERVAL));
+command.option('-i --scrape_interval <int>', 'Scrape Interval', String(DEFAULT_SCRAPE_INTERVAL));
 command.option('-p --port <int>', 'Listens on port number.', String(DEFAULT_PORT))
 command.option('-a --address <string>', 'Address to use', DEFAULT_ADDRESS)
 command.action(action);
