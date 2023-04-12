@@ -41,7 +41,7 @@
     "dependencies": {
         "substreams": "0.5.x",
         "substreams-sink": "0.2.x",
-        "substreams-sink-prometheus": "0.4.x"
+        "substreams-sink-prometheus": "^0.4.4"
     },
     "devDependencies": {
         "@types/node": "*",

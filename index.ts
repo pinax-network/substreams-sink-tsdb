@@ -1,10 +1,10 @@
-import { download, Clock, PrometheusOperations } from "substreams";
+import { download, createHash } from "substreams";
 import { run, logger, RunOptions } from "substreams-sink";
 
 import pkg from "./package.json";
 
 import { handleImport } from "./src/victoria_metrics";
-import { handleOperations } from "substreams-sink-prometheus";
+import { handleClock, handleManifest, handleOperations } from "substreams-sink-prometheus";
 
 logger.defaultMeta = { service: pkg.name };
 export { logger };
@@ -25,6 +25,8 @@ export interface ActionOptions extends RunOptions {
 export async function action(manifest: string, moduleName: string, options: ActionOptions) {
     // Download substreams
     const spkg = await download(manifest);
+    const hash = createHash(spkg);
+    logger.info("download", {manifest, hash});
 
     // Get command options
     const { address, port, scrape_interval } = options;
@@ -32,13 +34,10 @@ export async function action(manifest: string, moduleName: string, options: Acti
 
     // Run substreams
     const substreams = run(spkg, moduleName, options);
-
-    substreams.on("anyMessage", (message: PrometheusOperations, clock: Clock, typeName: string) => {
-        if ( typeName != TYPE_NAME ) return;
-        handleOperations(message);
-    });
-
+    handleManifest(substreams, manifest, hash);
+    substreams.on("anyMessage", handleOperations);
     substreams.on("clock", clock => {
+        handleClock(clock);
         handleImport(url, scrape_interval, clock);
     });
     substreams.start(options.delayBeforeStart);
