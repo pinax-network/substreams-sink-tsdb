@@ -13,6 +13,8 @@ export { logger };
 export const DEFAULT_ADDRESS = '127.0.0.1';
 export const DEFAULT_PORT = 8428;
 export const DEFAULT_SCRAPE_INTERVAL = 30;
+export const DEFAULT_JOB = 'subtivity';
+export const DEFAULT_NETWORK = 'eos';
 export const TYPE_NAME = 'pinax.substreams.sink.prometheus.v1.PrometheusOperations';
 
 // Custom user options interface
@@ -20,6 +22,8 @@ export interface ActionOptions extends RunOptions {
     address: string;
     port: number;
     scrape_interval: number;
+    job: string;
+    network: string;
 }
 
 export async function action(manifest: string, moduleName: string, options: ActionOptions) {
@@ -29,8 +33,9 @@ export async function action(manifest: string, moduleName: string, options: Acti
     logger.info("download", {manifest, hash});
 
     // Get command options
-    const { address, port, scrape_interval } = options;
+    const { address, port, scrape_interval, job, network } = options;
     const url = `http://${address}:${port}/api/v1/import/prometheus`
+    const injectedLabels = `job="${job}", network="${network}"`
 
     // Run substreams
     const substreams = run(spkg, moduleName, options);
@@ -38,7 +43,7 @@ export async function action(manifest: string, moduleName: string, options: Acti
     substreams.on("anyMessage", handleOperations);
     substreams.on("clock", clock => {
         handleClock(clock);
-        handleImport(url, scrape_interval, clock);
+        handleImport(url, scrape_interval, injectedLabels, clock);
     });
     substreams.start(options.delayBeforeStart);
 }
