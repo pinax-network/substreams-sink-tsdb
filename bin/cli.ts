@@ -9,6 +9,5 @@ const command = cli.run(program, pkg);
 command.option('-i --scrape_interval <int>', 'Scrape Interval', String(DEFAULT_SCRAPE_INTERVAL));
 command.option('-p --port <int>', 'Listens on port number.', String(DEFAULT_PORT))
 command.option('-a --address <string>', 'VictoriaMetrics address to connect.', DEFAULT_ADDRESS);
-command.option('-j --injectLabels <string>', "Injected Labels", '')
 command.action(action);
 program.parse();
