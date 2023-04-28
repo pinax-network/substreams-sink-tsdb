@@ -11,8 +11,8 @@ export async function fetchMetrics(epoch: number, injectedLabels: string):Promis
             continue
         }
         const mline = line.includes('{') ?
-            line.replace("}", `, ${injectedLabels} }`):
-            line.replace(" ", ` { ${injectedLabels} }`);
+            line.replace("}", `, ${injectedLabels} } `):
+            line.replace(" ", `{${injectedLabels}} `);
         arr.push(`${mline} ${epoch}`)
     }
     return arr.join('\n')
@@ -22,7 +22,6 @@ export async function handleImport(url: string, scrape_interval: number, injecte
     if ( !clock.timestamp ) return; // no timestamp (yet
     const epoch = clock.timestamp.toDate().valueOf();
     if ( epoch / 1000 % scrape_interval != 0 ) return; // only handle epoch intervals
- //   logger.info("import", {epoch, clock});
     const body = await fetchMetrics(epoch, injectedLabels);
     await fetch(url, { method: 'POST', body }).catch((error) => {
         logger.error(error)

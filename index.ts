@@ -13,8 +13,6 @@ export { logger };
 export const DEFAULT_ADDRESS = '127.0.0.1';
 export const DEFAULT_PORT = 8428;
 export const DEFAULT_SCRAPE_INTERVAL = 30;
-export const DEFAULT_JOB = 'subtivity';
-export const DEFAULT_NETWORK = 'eos';
 export const TYPE_NAME = 'pinax.substreams.sink.prometheus.v1.PrometheusOperations';
 
 // Custom user options interface
@@ -22,8 +20,7 @@ export interface ActionOptions extends RunOptions {
     address: string;
     port: number;
     scrape_interval: number;
-    job: string;
-    network: string;
+    injectedLabels: string;  // -j 'job="something",blah="test"'
 }
 
 export async function action(manifest: string, moduleName: string, options: ActionOptions) {
@@ -33,9 +30,12 @@ export async function action(manifest: string, moduleName: string, options: Acti
     logger.info("download", {manifest, hash});
 
     // Get command options
-    const { address, port, scrape_interval, job, network } = options;
+    const { address, port, scrape_interval, injectedLabels} = options;
     const url = `http://${address}:${port}/api/v1/import/prometheus`
-    const injectedLabels = `job="${job}", network="${network}"`
+    //const injectedLabels = `job="${job}", network="${network}"`
+    if (injectedLabels === '') {
+        throw "InjectedLabels not defined. Missing -j 'job=\"something\"'";
+    }
 
     // Run substreams
     const substreams = run(spkg, moduleName, options);
