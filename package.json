@@ -1,6 +1,6 @@
 {
     "name": "substreams-sink-victoria-metrics",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Substreams VictoriaMetrics sink module",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -41,13 +41,13 @@
     "dependencies": {
         "substreams": "0.5.x",
         "substreams-sink": "0.2.x",
-        "substreams-sink-prometheus": "^0.4.6"
+        "substreams-sink-prometheus": "0.4.x"
     },
     "devDependencies": {
-        "@types/node": "*",
+        "@types/node": "latest",
         "@vercel/ncc": "0.36.x",
-        "pkg": "5.x",
-        "tsup": "6.x",
-        "typescript": "5.x"
+        "pkg": "latest",
+        "tsup": "latest",
+        "typescript": "latest"
     }
 }
