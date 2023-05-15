@@ -3,10 +3,11 @@ import { logger, register } from "substreams-sink-prometheus"
 
 export function appendEpoch(metrics: string, epoch: number) {
     const separator = "\n";
-    return metrics.split(separator).map(line => {
-        if (line == "" || line[0] =='#') return line // comment or empty line
-        return `${line} ${epoch}`
-    }).join(separator);
+    const lines = metrics.split(separator)
+        .filter(line => line.length !== 0
+            && !line.startsWith('#')) // comment or empty line
+    lines.push("")
+    return lines.join(` ${epoch}${separator}`);
 }
 
 export async function handleImport(url: string, scrape_interval: number, clock: Clock) {
