@@ -39,9 +39,9 @@
         "pkg": "ncc build bin/cli.ts -o build && pkg build/index.js"
     },
     "dependencies": {
-        "substreams": "0.5.x",
-        "substreams-sink": "0.2.x",
-        "substreams-sink-prometheus": "0.4.x"
+        "substreams": "0.7.x",
+        "substreams-sink": "0.3.x",
+        "substreams-sink-prometheus": "0.5.x"
     },
     "devDependencies": {
         "@types/node": "latest",
