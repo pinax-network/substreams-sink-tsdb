@@ -5,7 +5,7 @@ import pkg from "./package.json";
 import { handleImport } from "./src/victoria_metrics";
 import { collectDefaultMetrics, handleClock, handleManifest, handleOperations, setDefaultLabels } from "substreams-sink-prometheus";
 
-logger.defaultMeta = { service: pkg.name };
+logger.setName(pkg.name);
 export { logger };
 
 // default user options
@@ -26,17 +26,17 @@ export interface ActionOptions extends RunOptions {
 
 export async function action(manifest: string, moduleName: string, options: ActionOptions) {
     // Get command options
-    const { address, port, scrape_interval} = options;
+    const { address, port, scrape_interval } = options;
     const url = `http://${address}:${port}/api/v1/import/prometheus`
 
     // Set default labels
-    if ( options.collectDefaultMetrics ) collectDefaultMetrics(options.labels);
-    if ( options.labels ) setDefaultLabels(options.labels);
+    if (options.collectDefaultMetrics) collectDefaultMetrics(options.labels);
+    if (options.labels) setDefaultLabels(options.labels);
 
     // Download substreams
     const spkg = await download(manifest);
     const hash = createHash(spkg);
-    logger.info("download", {manifest, hash});
+    logger.info("download", { manifest, hash });
 
     // Run substreams
     const substreams = run(spkg, moduleName, options);
