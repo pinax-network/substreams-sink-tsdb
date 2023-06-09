@@ -36,6 +36,7 @@
     "scripts": {
         "prepublishOnly": "tsc",
         "build": "tsup index.ts bin/cli.ts --dts",
+        "test": "tsx --test **/*.spec.ts",
         "pkg": "ncc build bin/cli.ts -o build && pkg build/index.js"
     },
     "dependencies": {
