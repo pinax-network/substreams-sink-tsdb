@@ -5,19 +5,13 @@ import { register } from "substreams-sink-prometheus"
 import { Clock } from "substreams";
 import * as fs from 'fs';
 
-export interface DefaultOptions extends RunOptions {
-    address: string;
-    port: number;
-    scrape_interval: number;
-    labels: Object;
-    collectDefaultMetrics: boolean;
-}
+const EPOCH_HEADER = "#epoch"
 
 export interface ActionOptions extends RunOptions {
     address: string;
     port: number;
     scrape_interval: number;
-    labels: Object;
+    labels: Record<string, string>;
     collectDefaultMetrics: boolean;
     csv_root: string;
 }
@@ -47,7 +41,7 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
             .filter(line => line.length !== 0
                 && !line.startsWith('#') && !line.startsWith("manifest")) // comment or empty line
 
-        const header: string[] = ["#epoch"]
+        const header: string[] = [EPOCH_HEADER]
         const values: string[] = [epoch.toString()]
         lines.map(function (val, _index) {
             const el = val.split(" ", 2)
@@ -146,20 +140,35 @@ export async function actionImportCsv(options: ActionOptions) {
             const headers: string[] = lines[0].split(",")
             console.log(`headers: ${headers}`)
             lines.shift()  // remove 1st line (headers)
+
             // create header mapping
             const mapping: string[] = []
             let col = 1
             for (const header of headers) {
-                if (header == "#epoch") {
+                if (header == EPOCH_HEADER) {
                     mapping.push(`${col}:time:unix_ms`)
                 } else {
                     mapping.push(`${col}:metric:${header}`)
                 }
                 ++col
             }
+
+            // inject labels
+            const injectedLabelValues: string[] = [];
+            for (const label in options.labels) {
+                mapping.push(`${col}:label:${label}`)
+                injectedLabelValues.push(options.labels[label])
+                ++col
+            }
+
+            const injectLabels = injectedLabelValues.join(",")
+            const body = lines.map(function (line, _index) {
+                return injectLabels.length !== 0 ? `${line},${injectLabels}` : line
+            }).join("\n")
+
             const url = "http://localhost:8428/api/v1/import/csv?format=" + mapping.join(",")
-            const body = lines.join("\n")
             console.log(`URL: ${url}`)
+            console.log(`BODY: ${body}`)
             await fetch(url, { method: 'POST', body }).catch((error) => {
                 logger.error(error)
             });

@@ -7,19 +7,25 @@ import pkg from "../package.json";
 import { DEFAULT_COLLECT_DEFAULT_METRICS, handleLabels } from "substreams-sink-prometheus";
 
 const program = cli.program(pkg);
-defaultOptions(cli.run(program, pkg)
+cli.run(program, pkg)
     .option('-p --port <int>', 'Listens on port number.', String(DEFAULT_PORT))
     .option('-a --address <string>', 'VictoriaMetrics address to connect.', DEFAULT_ADDRESS)
-    .action(action))
+    .option('-i --scrape_interval <int>', 'Scrape Interval', String(DEFAULT_SCRAPE_INTERVAL))
+    .option('-l --labels [...string]', "To apply generic labels to all default metrics (ex: --labels foo=bar)", handleLabels, {})
+    .option('--collect-default-metrics <boolean>', "Collect default metrics", DEFAULT_COLLECT_DEFAULT_METRICS)
+    .action(action)
 
 const cmdCsv = program.command("csv")
 // exportCSV
-defaultOptions(cmdCsv.addCommand(cli.run(program, pkg).name("export")
+cmdCsv.addCommand(cli.run(program, pkg).name("export")
     .description("Export CSV")
     .option('-i --scrape_interval <int>', 'Scrape Interval', String(DEFAULT_SCRAPE_INTERVAL))
     .option('--csv_root <string>', 'CSV root', String(DEFAULT_CSV_ROOT))
     .option('--block_granular <int>', 'CSV root', String(DEFAULT_BLOCK_GRANULAR))
-    .action(actionExportCsv)))
+    .option('-i --scrape_interval <int>', 'Scrape Interval', String(DEFAULT_SCRAPE_INTERVAL))
+    .option('-l --labels [...string]', "To apply generic labels to all default metrics (ex: --labels foo=bar)", handleLabels, {})
+    .option('--collect-default-metrics <boolean>', "Collect default metrics", DEFAULT_COLLECT_DEFAULT_METRICS)
+    .action(actionExportCsv))
 
 // importCSV
 cmdCsv.command("import")
@@ -33,9 +39,3 @@ cmdCsv.command("import")
 program.showHelpAfterError();
 program.parse();
 
-function defaultOptions(command: Command) {
-    return command
-        .option('-i --scrape_interval <int>', 'Scrape Interval', String(DEFAULT_SCRAPE_INTERVAL))
-        .option('-l --labels [...string]', "To apply generic labels to all default metrics (ex: --labels foo=bar)", handleLabels, {})
-        .option('--collect-default-metrics <boolean>', "Collect default metrics", DEFAULT_COLLECT_DEFAULT_METRICS)
-}
