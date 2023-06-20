@@ -1,5 +1,5 @@
 import { run, logger, RunOptions } from "substreams-sink";
-import { collectDefaultMetrics, handleClock, handleManifest, handleOperations, setDefaultLabels } from "substreams-sink-prometheus";
+import { handleClock, handleManifest, handleOperations } from "substreams-sink-prometheus";
 import { download, createHash } from "substreams";
 import { register } from "substreams-sink-prometheus"
 import { Clock } from "substreams";
@@ -20,12 +20,12 @@ function getCsvRoot(rootValue: string) {
     if (rootValue.length === 0) {
         return "."
     }
-    return rootValue.endsWith("/") ? rootValue.substring(0, -1) : rootValue
+    return rootValue.endsWith("/") ? rootValue.substring(0, rootValue.length - 1) : rootValue
 }
 
 export async function actionExportCsv(manifest: string, moduleName: string, options: ActionOptions) {
 
-    function pad(num: number, size: number) {
+    function padNumber(num: number, size: number) {
         const p: string[] = []
         const numStr = num.toString()
         while (p.length + numStr.length < size) {
@@ -37,16 +37,15 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
 
     function extractMetrics(metrics: string, epoch: number): string[] {
         const separator = "\n";
-        const lines = metrics.split(separator)
+        const lines = metrics.trim().split(separator)
             .filter(line => line.length !== 0
                 && !line.startsWith('#') && !line.startsWith("manifest")) // comment or empty line
-
         const header: string[] = [EPOCH_HEADER]
         const values: string[] = [epoch.toString()]
         lines.map(function (val, _index) {
             const el = val.split(" ", 2)
-            header.push(el[0])
-            values.push(el[1])
+            header.push(el[0])  // metric_name
+            values.push(el[1])  // value
         })
         return [header.join(","), values.join(",")]
     }
@@ -64,9 +63,9 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
 
         // compute target path
         const block_folder = Math.floor(block_num / blockGranular) * blockGranular
-        const block_folder_path = pad(block_folder, 10)
+        const block_folder_path = padNumber(block_folder, 10)
         const outPath = `${csvPath}/${block_folder_path}`
-        const outFilePath = `${outPath}/transaction_traces.csv`
+        const outFilePath = `${outPath}/metrics.csv`
 
         // create path if not exists
         if (!fs.existsSync(outPath)) {
@@ -78,7 +77,7 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
                 // write header + 1st line
                 fs.writeFileSync(outFilePath, csvData.join("\n") + "\n");
             } else {
-                // write new csv line
+                // append new csv line
                 fs.appendFileSync(outFilePath, csvData[1] + "\n", "utf-8");
             }
             // file written successfully
@@ -90,9 +89,6 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
         console.log(metrics)
     }
 
-    // <tmp>/0003de38e0c5b97cb4fd6f45a5aa784a23275916/000000100/transaction_traces.csv
-    logger.info("*** actionExportCsv")
-
     // Get command options
     const { address, port, scrape_interval } = options;
 
@@ -101,10 +97,6 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
 
     logger.info(`vitals: ${address} ${port} ${scrape_interval}`)
     const url = `http://${address}:${port}/api/v1/import/prometheus`
-
-    // Set default labels
-    //if (options.collectDefaultMetrics) collectDefaultMetrics(options.labels);
-    //if (options.labels) setDefaultLabels(options.labels);
 
     // Download substreams
     const spkg = await download(manifest);
@@ -129,19 +121,25 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
 
     console.log(options)
 }
+
 export async function actionImportCsv(options: ActionOptions) {
     console.log(options)
     const csvRoot = getCsvRoot(options.csv_root)
+    const { address, port } = options;
 
     async function processMetrics(filePath: string) {
+        const separator = "\n";
+        const csvSeparator = ","
         const csvData = fs.readFileSync(filePath, 'utf-8');
-        const lines = csvData.split("\n")
-        if (lines.length > 1) {
-            const headers: string[] = lines[0].split(",")
+        const lines = csvData.trim().split(separator)
+
+        // check if there is one line of data
+        if (lines.length > 2) {
+            const headers = lines[0].split(csvSeparator)
             console.log(`headers: ${headers}`)
             lines.shift()  // remove 1st line (headers)
 
-            // create header mapping
+            // create header mapping for metrics
             const mapping: string[] = []
             let col = 1
             for (const header of headers) {
@@ -161,12 +159,13 @@ export async function actionImportCsv(options: ActionOptions) {
                 ++col
             }
 
-            const injectLabels = injectedLabelValues.join(",")
+            // create request body
+            const injectedLabels = injectedLabelValues.join(csvSeparator)
             const body = lines.map(function (line, _index) {
-                return injectLabels.length !== 0 ? `${line},${injectLabels}` : line
-            }).join("\n")
+                return injectedLabels.length !== 0 ? `${line}${csvSeparator}${injectedLabels}` : line
+            }).join(separator)
 
-            const url = "http://localhost:8428/api/v1/import/csv?format=" + mapping.join(",")
+            const url = `http://${address}:${port}/api/v1/import/csv?format=` + mapping.join(csvSeparator)
             console.log(`URL: ${url}`)
             console.log(`BODY: ${body}`)
             await fetch(url, { method: 'POST', body }).catch((error) => {
@@ -175,19 +174,17 @@ export async function actionImportCsv(options: ActionOptions) {
         }
     }
 
-    async function SearchAllFolders(root: string) {
+    async function SearchSubFolders(root: string) {
         fs.readdirSync(root).forEach(object => {
             if (object != "." && object != "..") {
-                console.log(`OBJECT: ${object}`);
                 const path = `${root}/${object}`
                 if (fs.lstatSync(path).isDirectory()) {
-                    console.log(`PATH: ${path}`);
-                    SearchAllFolders(path)
+                    SearchSubFolders(path)
                 } else if (fs.lstatSync(path).isFile() && path.endsWith(".csv")) {
                     processMetrics(path)
                 }
             }
         });
     }
-    await SearchAllFolders(csvRoot)
+    await SearchSubFolders(csvRoot)
 }
