@@ -22,14 +22,14 @@ export const DEFAULT_FILE_GRANULAR = 100
 export interface ActionOptions extends RunOptions {
     address: string;
     port: number;
-    scrape_interval: number;
+    scrapeInterval: number;
     labels: Object;
     collectDefaultMetrics: boolean;
 }
 
 export async function action(manifest: string, moduleName: string, options: ActionOptions) {
     // Get command options
-    const { address, port, scrape_interval } = options;
+    const { address, port, scrapeInterval } = options;
     const url = `http://${address}:${port}/api/v1/import/prometheus`
 
     // Set default labels
@@ -47,7 +47,7 @@ export async function action(manifest: string, moduleName: string, options: Acti
     substreams.on("anyMessage", handleOperations);
     substreams.on("clock", clock => {
         handleClock(clock);
-        handleImport(url, scrape_interval, clock);
+        handleImport(url, scrapeInterval, clock);
     });
     substreams.start(options.delayBeforeStart);
 }

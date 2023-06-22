@@ -10,12 +10,12 @@ const EPOCH_HEADER = "#epoch"
 export interface ActionOptions extends RunOptions {
     address: string;
     port: number;
-    scrape_interval: number;
+    scrapeInterval: number;
     labels: Record<string, string>;
     collectDefaultMetrics: boolean;
-    csv_root: string;
-    folder_granular: number;
-    file_granular: number;
+    csvRoot: string;
+    folderGranular: number;
+    fileGranular: number;
 }
 
 function getCsvRoot(rootValue: string) {
@@ -24,6 +24,9 @@ function getCsvRoot(rootValue: string) {
     }
     return rootValue.endsWith("/") ? rootValue.substring(0, rootValue.length - 1) : rootValue
 }
+
+//////////////////////////////////////////////////////////
+// ExportCSV
 
 export async function actionExportCsv(manifest: string, moduleName: string, options: ActionOptions) {
 
@@ -54,14 +57,19 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
         return [header.join(","), values.join(",")]
     }
 
-    async function handleExport(url: string, scrape_interval: number, clock: Clock) {
-        logger.info(`*** handleExport ${scrape_interval}`)
+    function writeCsvRowsToFile() {
+        if (lastFileRef.length !== 0) {
+            fs.writeFileSync(lastFileRef, fileRows.join("\n"));
+        }
+    }
+
+    async function handleExport(url: string, scrapeInterval: number, clock: Clock) {
+        logger.info(`*** handleExport ${scrapeInterval}`)
         const block_num = Number(clock.number);
 
         if (!clock.timestamp) return; // no timestamp yet
         const epoch = clock.timestamp.toDate().valueOf();
-        logger.info(`*** handleExport epoch ${epoch / 1000}`)
-        if (epoch / 1000 % scrape_interval != 0) return; // only handle epoch intervals
+        if (epoch / 1000 % scrapeInterval != 0) return; // only handle epoch intervals
         const metrics = await register.metrics();
         const csvData = extractMetrics(metrics, epoch)
 
@@ -75,31 +83,32 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
         // create path if not exists
         if (!fs.existsSync(outPath)) {
             fs.mkdirSync(outPath, { recursive: true });
+        } else {
+            if (!fs.lstatSync(outPath).isDirectory()) {
+                throw new Error(`${outPath} is not a folder.`)
+            }
         }
 
         try {
-            if (!fs.existsSync(outFilePath)) {
-                // write header + 1st line
-                fs.writeFileSync(outFilePath, csvData.join("\n") + "\n");
-            } else {
-                // append new csv line
-                fs.appendFileSync(outFilePath, csvData[1] + "\n", "utf-8");
+            if (lastFileRef != outFilePath) {
+                writeCsvRowsToFile();
+                lastFileRef = outFilePath
+                fileRows = [csvData[0]] // csv header
             }
-            // file written successfully
+            fileRows.push(csvData[1]) // csv data
         } catch (err) {
             console.error(err);
         }
-        logger.info(metrics)
-        console.log(metrics)
     }
 
     // Get command options
-    const { address, port, scrape_interval } = options;
+    const { address, port, scrapeInterval } = options;
 
     logger.info(`manifest: ${manifest} moduleName: ${moduleName}`)
-    logger.info(`options: ${options}`)
+    logger.info("options:", options)
+    console.log(options)
 
-    logger.info(`vitals: ${address} ${port} ${scrape_interval}`)
+    logger.info(`vitals: ${address} ${port} ${scrapeInterval}`)
     const url = `http://${address}:${port}/api/v1/import/prometheus`
 
     // Download substreams
@@ -108,10 +117,13 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
     logger.info("download", { manifest, hash });
 
     // Csv root
-    const folderGranular = options.folder_granular;
-    const fileGranular = options.file_granular;
-    const csvRoot = getCsvRoot(options.csv_root)
+    const folderGranular = options.folderGranular;
+    const fileGranular = options.fileGranular;
+    const csvRoot = getCsvRoot(options.csvRoot)
     const csvPath = `${csvRoot}/${hash}`;
+
+    let lastFileRef: string = ""
+    let fileRows: string[] = []
 
     // Run substreams
     const substreams = run(spkg, moduleName, options);
@@ -119,18 +131,16 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
     substreams.on("anyMessage", handleOperations);
     substreams.on("clock", clock => {
         handleClock(clock);
-        handleExport(url, scrape_interval, clock);
+        handleExport(url, scrapeInterval, clock);
     });
+    substreams.on("end", writeCsvRowsToFile);
     substreams.start(options.delayBeforeStart);
-
-    console.log(options)
 }
 
-export async function actionImportCsv(options: ActionOptions) {
-    console.log(options)
-    const csvRoot = getCsvRoot(options.csv_root)
-    const { address, port } = options;
+//////////////////////////////////////////////////////////
+// importCSV
 
+export async function actionImportCsv(options: ActionOptions) {
     async function processMetrics(filePath: string) {
         const lineSeparator = "\n";
         const csvSeparator = ","
@@ -138,10 +148,10 @@ export async function actionImportCsv(options: ActionOptions) {
         const csvData = fs.readFileSync(filePath, 'utf-8');
         const lines = csvData.trim().split(lineSeparator)
 
-        // check if there is one line of data
-        if (lines.length > 2) {
+        // check if there is more than one line of data
+        if (lines.length > 1) {
             const headers = lines[0].split(csvSeparator)
-            console.log(`headers: ${headers}`)
+            logger.debug(`headers: ${headers}`)
             lines.shift()  // remove 1st line (headers)
 
             // create header mapping for metrics
@@ -169,9 +179,10 @@ export async function actionImportCsv(options: ActionOptions) {
                 return injectedLabels.length !== 0 ? `${line}${csvSeparator}${injectedLabels}` : line
             }).join(lineSeparator)
 
+            const { address, port } = options;
             const url = `http://${address}:${port}/api/v1/import/csv?format=` + mapping.join(formatSeparator)
-            console.log(`URL: ${url}`)
-            console.log(`BODY: ${body}`)
+            logger.debug(`URL: ${url}`)
+            logger.debug(`BODY: ${body}`)
             await fetch(url, { method: 'POST', body }).catch((error) => {
                 logger.error(error)
             });
@@ -179,16 +190,23 @@ export async function actionImportCsv(options: ActionOptions) {
     }
 
     async function SearchSubFolders(root: string) {
+        const fileList: string[] = []
         fs.readdirSync(root).forEach(object => {
             if (object != "." && object != "..") {
                 const path = `${root}/${object}`
                 if (fs.lstatSync(path).isDirectory()) {
                     SearchSubFolders(path)
                 } else if (fs.lstatSync(path).isFile() && path.endsWith(".csv")) {
-                    processMetrics(path)
+                    fileList.push(path)
                 }
             }
         });
+        for (const path of fileList) {
+            await processMetrics(path)
+        }
     }
+
+    console.log(options)
+    const csvRoot = getCsvRoot(options.csvRoot)
     await SearchSubFolders(csvRoot)
 }

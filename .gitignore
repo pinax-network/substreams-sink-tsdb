@@ -12,3 +12,4 @@ data
 build
 *.lock
 .DS_Store
+.vscode
