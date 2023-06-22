@@ -14,6 +14,8 @@ export interface ActionOptions extends RunOptions {
     labels: Record<string, string>;
     collectDefaultMetrics: boolean;
     csv_root: string;
+    folder_granular: number;
+    file_granular: number;
 }
 
 function getCsvRoot(rootValue: string) {
@@ -25,6 +27,7 @@ function getCsvRoot(rootValue: string) {
 
 export async function actionExportCsv(manifest: string, moduleName: string, options: ActionOptions) {
 
+    // pad a number on a fixed number of positions
     function padNumber(num: number, size: number) {
         const p: string[] = []
         const numStr = num.toString()
@@ -35,9 +38,10 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
         return p.join("");
     }
 
+    // extract metrics and headers
     function extractMetrics(metrics: string, epoch: number): string[] {
-        const separator = "\n";
-        const lines = metrics.trim().split(separator)
+        const lineSeparator = "\n";
+        const lines = metrics.trim().split(lineSeparator)
             .filter(line => line.length !== 0
                 && !line.startsWith('#') && !line.startsWith("manifest")) // comment or empty line
         const header: string[] = [EPOCH_HEADER]
@@ -62,10 +66,11 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
         const csvData = extractMetrics(metrics, epoch)
 
         // compute target path
-        const block_folder = Math.floor(block_num / blockGranular) * blockGranular
+        const block_folder = Math.floor(block_num / folderGranular) * folderGranular
         const block_folder_path = padNumber(block_folder, 10)
         const outPath = `${csvPath}/${block_folder_path}`
-        const outFilePath = `${outPath}/metrics.csv`
+        const fileId = Math.floor(block_num / fileGranular) * fileGranular
+        const outFilePath = `${outPath}/metrics-${fileId}.csv`
 
         // create path if not exists
         if (!fs.existsSync(outPath)) {
@@ -84,7 +89,6 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
         } catch (err) {
             console.error(err);
         }
-
         logger.info(metrics)
         console.log(metrics)
     }
@@ -104,7 +108,8 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
     logger.info("download", { manifest, hash });
 
     // Csv root
-    const blockGranular = 1000;
+    const folderGranular = options.folder_granular;
+    const fileGranular = options.file_granular;
     const csvRoot = getCsvRoot(options.csv_root)
     const csvPath = `${csvRoot}/${hash}`;
 
@@ -113,7 +118,6 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
     handleManifest(substreams, manifest, hash);
     substreams.on("anyMessage", handleOperations);
     substreams.on("clock", clock => {
-        const block_num = Number(clock.number);
         handleClock(clock);
         handleExport(url, scrape_interval, clock);
     });
@@ -128,10 +132,11 @@ export async function actionImportCsv(options: ActionOptions) {
     const { address, port } = options;
 
     async function processMetrics(filePath: string) {
-        const separator = "\n";
+        const lineSeparator = "\n";
         const csvSeparator = ","
+        const formatSeparator = ","
         const csvData = fs.readFileSync(filePath, 'utf-8');
-        const lines = csvData.trim().split(separator)
+        const lines = csvData.trim().split(lineSeparator)
 
         // check if there is one line of data
         if (lines.length > 2) {
@@ -141,31 +146,30 @@ export async function actionImportCsv(options: ActionOptions) {
 
             // create header mapping for metrics
             const mapping: string[] = []
-            let col = 1
             for (const header of headers) {
+                const col = mapping.length + 1
                 if (header == EPOCH_HEADER) {
                     mapping.push(`${col}:time:unix_ms`)
                 } else {
                     mapping.push(`${col}:metric:${header}`)
                 }
-                ++col
             }
 
             // inject labels
             const injectedLabelValues: string[] = [];
             for (const label in options.labels) {
+                const col = mapping.length + 1
                 mapping.push(`${col}:label:${label}`)
                 injectedLabelValues.push(options.labels[label])
-                ++col
             }
 
             // create request body
             const injectedLabels = injectedLabelValues.join(csvSeparator)
             const body = lines.map(function (line, _index) {
                 return injectedLabels.length !== 0 ? `${line}${csvSeparator}${injectedLabels}` : line
-            }).join(separator)
+            }).join(lineSeparator)
 
-            const url = `http://${address}:${port}/api/v1/import/csv?format=` + mapping.join(csvSeparator)
+            const url = `http://${address}:${port}/api/v1/import/csv?format=` + mapping.join(formatSeparator)
             console.log(`URL: ${url}`)
             console.log(`BODY: ${body}`)
             await fetch(url, { method: 'POST', body }).catch((error) => {

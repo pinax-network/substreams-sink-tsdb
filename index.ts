@@ -15,7 +15,8 @@ export const DEFAULT_SCRAPE_INTERVAL = 30;
 export const TYPE_NAME = 'pinax.substreams.sink.prometheus.v1.PrometheusOperations';
 export const DEFAULT_COLLECT_DEFAULT_METRICS = false;
 export const DEFAULT_CSV_ROOT = './csv'
-export const DEFAULT_BLOCK_GRANULAR = 1000
+export const DEFAULT_FOLDER_GRANULAR = 1000
+export const DEFAULT_FILE_GRANULAR = 100
 
 // Custom user options interface
 export interface ActionOptions extends RunOptions {
