@@ -81,12 +81,15 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
         const outFilePath = `${outPath}/metrics-${fileId}.csv`
 
         // create path if not exists
-        if (!fs.existsSync(outPath)) {
-            fs.mkdirSync(outPath, { recursive: true });
-        } else {
-            if (!fs.lstatSync(outPath).isDirectory()) {
-                throw new Error(`${outPath} is not a folder.`)
+        if (lastPathRef != outPath) {
+            if (!fs.existsSync(outPath)) {
+                fs.mkdirSync(outPath, { recursive: true });
+            } else {
+                if (!fs.lstatSync(outPath).isDirectory()) {
+                    throw new Error(`${outPath} is not a folder.`)
+                }
             }
+            lastPathRef = outPath
         }
 
         try {
@@ -97,7 +100,7 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
             }
             fileRows.push(csvData[1]) // csv data
         } catch (err) {
-            console.error(err);
+            logger.error(err);
         }
     }
 
@@ -122,6 +125,7 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
     const csvRoot = getCsvRoot(options.csvRoot)
     const csvPath = `${csvRoot}/${hash}`;
 
+    let lastPathRef: string = ""
     let lastFileRef: string = ""
     let fileRows: string[] = []
 
