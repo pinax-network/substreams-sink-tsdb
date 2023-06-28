@@ -15,15 +15,15 @@ cli.run(program, pkg)
     .option('--collect-default-metrics <boolean>', "Collect default metrics", DEFAULT_COLLECT_DEFAULT_METRICS)
     .action(action)
 
-const cmdCsv = program.command("csv")
+const cmdCsv = program.command("csv").description("Additional csv options")
 // exportCSV
-cmdCsv.addCommand(cli.run(program, pkg).name("export")
+cli.run(cmdCsv, pkg).name("export")
     .description("Export CSV")
-    .option('-i --scrape-interval <int>', 'Scrape Interval', String(DEFAULT_SCRAPE_INTERVAL))
+    .option('-i --scrape-interval <int>', 'Scrape Interval (seconds)', String(DEFAULT_SCRAPE_INTERVAL))
     .option('--csv-root <string>', 'CSV root', String(DEFAULT_CSV_ROOT))
     .option('--folder-granular <int>', `folder granular (default: ${DEFAULT_FOLDER_GRANULAR})`, String(DEFAULT_FOLDER_GRANULAR))
     .option('--file-granular <int>', `file granular (default: ${DEFAULT_FILE_GRANULAR})`, String(DEFAULT_FILE_GRANULAR))
-    .action(actionExportCsv))
+    .action(actionExportCsv)
 
 // importCSV
 cmdCsv.command("import")
