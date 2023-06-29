@@ -63,7 +63,7 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
         }
     }
 
-    async function handleExport(url: string, scrapeInterval: number, clock: Clock) {
+    async function handleExport(scrapeInterval: number, clock: Clock) {
         logger.info(`*** handleExport ${scrapeInterval}`)
         const block_num = Number(clock.number);
 
@@ -112,7 +112,6 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
     console.log(options)
 
     logger.info(`vitals: ${address} ${port} ${scrapeInterval}`)
-    const url = `http://${address}:${port}/api/v1/import/prometheus`
 
     // Download substreams
     const spkg = await download(manifest);
@@ -135,7 +134,7 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
     substreams.on("anyMessage", handleOperations);
     substreams.on("clock", clock => {
         handleClock(clock);
-        handleExport(url, scrapeInterval, clock);
+        handleExport(scrapeInterval, clock);
     });
     substreams.on("end", writeCsvRowsToFile);
     substreams.start(options.delayBeforeStart);
