@@ -1,13 +1,15 @@
-import { run, logger, RunOptions } from "substreams-sink";
-import { handleClock, handleManifest, handleOperations } from "substreams-sink-prometheus";
-import { download, createHash } from "substreams";
-import { register } from "substreams-sink-prometheus"
+import { logger } from "substreams-sink";
+import pkg from "../package.json";
+import { commander, setup } from "substreams-sink";
+import { handleOperation, register } from "./prom";
+import { createHash } from "substreams";
 import { Clock } from "substreams";
 import * as fs from 'fs';
+import { fetchSubstream } from "@substreams/core";
 
 const EPOCH_HEADER = "#epoch"
 
-export interface ActionOptions extends RunOptions {
+export interface ActionOptions extends commander.RunOptions {
     address: string;
     port: number;
     scrapeInterval: number;
@@ -16,6 +18,7 @@ export interface ActionOptions extends RunOptions {
     csvRoot: string;
     folderGranular: number;
     fileGranular: number;
+    manifest: string
 }
 
 function getCsvRoot(rootValue: string) {
@@ -28,7 +31,7 @@ function getCsvRoot(rootValue: string) {
 //////////////////////////////////////////////////////////
 // ExportCSV
 
-export async function actionExportCsv(manifest: string, moduleName: string, options: ActionOptions) {
+export async function actionExportCsv(options: ActionOptions) {
 
     // pad a number on a fixed number of positions
     function padNumber(num: number, size: number) {
@@ -107,16 +110,16 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
     // Get command options
     const { address, port, scrapeInterval } = options;
 
-    logger.info(`manifest: ${manifest} moduleName: ${moduleName}`)
+    //logger.info(`manifest: ${manifest} moduleName: ${moduleName}`)
     logger.info("options:", options)
     console.log(options)
 
     logger.info(`vitals: ${address} ${port} ${scrapeInterval}`)
 
     // Download substreams
-    const spkg = await download(manifest);
-    const hash = createHash(spkg);
-    logger.info("download", { manifest, hash });
+    const spkg = await fetchSubstream(options.manifest);
+    const hash = createHash(spkg.toBinary());
+    logger.info("download", options.manifest, hash);
 
     // Csv root
     const folderGranular = options.folderGranular;
@@ -129,15 +132,18 @@ export async function actionExportCsv(manifest: string, moduleName: string, opti
     let fileRows: string[] = []
 
     // Run substreams
-    const substreams = run(spkg, moduleName, options);
-    handleManifest(substreams, manifest, hash);
-    substreams.on("anyMessage", handleOperations);
-    substreams.on("clock", clock => {
-        handleClock(clock);
+    const emitter = await setup(options, pkg);
+    emitter.on("anyMessage", (message, cursor, clock) => {
+        //const substreams = run(spkg, options);
+        //handleManifest(substreams, options.manifest, hash);
+        //substreams.on("anyMessage", async (messages: any, _: any, clock: any) => {
+        // handleClock(clock);
+        handleOperation(message);
         handleExport(scrapeInterval, clock);
     });
-    substreams.on("end", writeCsvRowsToFile);
-    substreams.start(options.delayBeforeStart);
+
+    // Start streaming
+    emitter.start();
 }
 
 //////////////////////////////////////////////////////////
