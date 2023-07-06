@@ -1,11 +1,9 @@
 import { createHash } from "substreams";
-//import { run, logger, cli } from "substreams-sink";
 import { commander, setup } from "substreams-sink";
 import { logger } from "substreams-sink";
 import pkg from "./package.json";
 import { fetchSubstream } from "@substreams/core";
 import { handleImport } from "./src/victoria_metrics";
-//import { collectDefaultMetrics, handleClock, handleManifest, handleOperations, setDefaultLabels } from "substreams-sink-prometheus";
 import { handleOperation, register } from "./src/prom";
 
 logger.setName(pkg.name);
@@ -15,7 +13,6 @@ export { logger };
 export const DEFAULT_ADDRESS = '0.0.0.0';
 export const DEFAULT_PORT = 8428;
 export const DEFAULT_SCRAPE_INTERVAL = 30;
-export const TYPE_NAME = 'pinax.substreams.sink.prometheus.v1.PrometheusOperations';
 export const DEFAULT_COLLECT_DEFAULT_METRICS = false;
 export const DEFAULT_CSV_ROOT = './csv'
 export const DEFAULT_FOLDER_GRANULAR = 1000
@@ -36,10 +33,6 @@ export async function action(options: ActionOptions) {
     const { address, port, scrapeInterval } = options;
     const url = `http://${address}:${port}/api/v1/import/prometheus`
 
-    // Set default labels
-    // if (options.collectDefaultMetrics) collectDefaultMetrics(options.labels);
-    // if (options.labels) setDefaultLabels(options.labels);
-
     // Download substreams
     const spkg = await fetchSubstream(options.manifest);
     const hash = createHash(spkg.toBinary());
@@ -56,10 +49,6 @@ export async function action(options: ActionOptions) {
         handleOperation(message);
     });
 
-    //substreams.on("anyMessage", handleOperations);
-    /*substreams.on("clock", clock => {
-        handleClock(clock);
-        handleImport(url, scrapeInterval, clock);
-    });*/
-    //  substreams.start(options.delayBeforeStart);
+    // Start streaming
+    emitter.start();
 }
