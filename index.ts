@@ -4,7 +4,7 @@ import { logger } from "substreams-sink";
 import pkg from "./package.json";
 import { fetchSubstream } from "@substreams/core";
 import { handleImport } from "./src/victoria_metrics";
-import { handleOperation, register } from "./src/prom";
+import { handleOperations } from "./src/prom";
 
 logger.setName(pkg.name);
 export { logger };
@@ -42,11 +42,11 @@ export async function action(options: ActionOptions) {
     //const substreams = run(spkg, options);
     //handleManifest(substreams, options.manifest, hash);
     const emitter = await setup(options, pkg);
-    emitter.on("anyMessage", (message, cursor, clock) => {
+    emitter.on("anyMessage", (messages, cursor, clock) => {
         //substreams.on("anyMessage", async (messages: any, _: any, clock: any) => {
         //  handleClock(clock);
         handleImport(url, scrapeInterval, clock);
-        handleOperation(message);
+        handleOperations(messages);
     });
 
     // Start streaming

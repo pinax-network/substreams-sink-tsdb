@@ -1,7 +1,7 @@
 import { logger } from "substreams-sink";
 import pkg from "../package.json";
 import { commander, setup } from "substreams-sink";
-import { handleOperation, register } from "./prom";
+import { handleOperations, register } from "./prom";
 import { createHash } from "substreams";
 import { Clock } from "substreams";
 import * as fs from 'fs';
@@ -133,12 +133,12 @@ export async function actionExportCsv(options: ActionOptions) {
 
     // Run substreams
     const emitter = await setup(options, pkg);
-    emitter.on("anyMessage", (message, cursor, clock) => {
+    emitter.on("anyMessage", (messages, cursor, clock) => {
         //const substreams = run(spkg, options);
         //handleManifest(substreams, options.manifest, hash);
         //substreams.on("anyMessage", async (messages: any, _: any, clock: any) => {
         // handleClock(clock);
-        handleOperation(message);
+        handleOperations(messages);
         handleExport(scrapeInterval, clock);
     });
 

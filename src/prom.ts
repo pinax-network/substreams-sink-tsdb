@@ -1,4 +1,4 @@
-import { Clock } from "substreams";
+import { Clock } from 'substreams';
 import { logger } from "../index";
 import { Counter, Gauge, Histogram, Summary } from "prom-client";
 import client from "prom-client";
@@ -21,23 +21,29 @@ type PrometheusOperation = {
     gauge?: GaugeOp
 }
 
-export function handleOperation(promOp: any) {
-    //  console.log(promOp)
+type PrometheusOperations = {
+    operations: PrometheusOperation[];
+}
 
-    if (promOp.hasOwnProperty('gauge')) {
-        handleGauge(promOp);
-    }
+export function handleOperations(pp: any) {
+    const promOps = pp as PrometheusOperations;
+    for (const promOp of promOps.operations) {
+        //console.log(promOp)
+        if (promOp.hasOwnProperty('gauge')) {
+            handleGauge(promOp);
+        }
 
-    if (promOp.hasOwnProperty('summary')) {
-        //       handleSummary(promOp);
-    }
+        if (promOp.hasOwnProperty('summary')) {
+            //       handleSummary(promOp);
+        }
 
-    if (promOp.hasOwnProperty('counter')) {
-        handleCounter(promOp);
-    }
+        if (promOp.hasOwnProperty('counter')) {
+            handleCounter(promOp);
+        }
 
-    if (promOp.hasOwnProperty('histogram')) {
-        //     handleHistogram(promOp);
+        if (promOp.hasOwnProperty('histogram')) {
+            //     handleHistogram(promOp);
+        }
     }
 }
 
@@ -77,15 +83,15 @@ export function handleCounter(promOp: PrometheusOperation) {
     const name = promOp.name
     const labels = promOp.labels || {};
     registerCounter(name, "custom help", Object.keys(labels)); // TO-DO!
-    const operation = promOp.counter?.operation
-    const value = promOp.counter?.value
+    const operation = promOp.counter?.operation//  promOp.gauge?.operation
+    const value = promOp.counter?.value//promOp.gauge?.value
     const counter = register.getSingleMetric(promOp.name) as Counter;
     if (labels) counter.labels(labels);
     switch (operation) {
         case "OPERATION_INC": counter.labels(labels).inc(); break; // INC
         case "OPERATION_ADD": counter.labels(labels).inc(value); break; // ADD
         case "OPERATION_REMOVE": counter.remove(labels); break; // REMOVE
-        case "OPERATION_RESET": counter.reset(); break; // RESET
+        case "OPERATION_RESET": counter.reset(); break; // RESET        
         default: return; // SKIP
     }
     logger.info("counter", { name, labels, operation, value });
