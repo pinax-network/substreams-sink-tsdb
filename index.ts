@@ -50,5 +50,5 @@ export async function action(options: ActionOptions) {
     });
 
     // Start streaming
-    emitter.start();
+    emitter.start(options.delayBeforeStart);
 }

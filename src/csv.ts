@@ -6,8 +6,10 @@ import { createHash } from "substreams";
 import { Clock } from "substreams";
 import * as fs from 'fs';
 import { fetchSubstream } from "@substreams/core";
+//import * as csvwriter from 'csv-writer'
 
 const EPOCH_HEADER = "#epoch"
+type Row = Map<string, string>
 
 export interface ActionOptions extends commander.RunOptions {
     address: string;
@@ -45,24 +47,36 @@ export async function actionExportCsv(options: ActionOptions) {
     }
 
     // extract metrics and headers
-    function extractMetrics(metrics: string, epoch: number): string[] {
+    function extractMetrics(metrics: string, epoch: number): Row {
         const lineSeparator = "\n";
         const lines = metrics.trim().split(lineSeparator)
             .filter(line => line.length !== 0
                 && !line.startsWith('#') && !line.startsWith("manifest")) // comment or empty line
-        const header: string[] = [EPOCH_HEADER]
-        const values: string[] = [epoch.toString()]
+        const rowData = new Map<string, string>();
+        rowData.set(EPOCH_HEADER, epoch.toString())
         lines.map(function (val, _index) {
             const el = val.split(" ", 2)
-            header.push(el[0])  // metric_name
-            values.push(el[1])  // value
+            rowData.set(el[0], el[1])
         })
-        return [header.join(","), values.join(",")]
+        return rowData
     }
 
     function writeCsvRowsToFile() {
         if (lastFileRef.length !== 0) {
-            fs.writeFileSync(lastFileRef, fileRows.join("\n"));
+            const headerSet = new Set<string>()
+            const dataRows = allData.map(function (row, _index) {
+                if (row.size > headerSet.size) {
+                    row.forEach((_val, key) => {
+                        headerSet.add(key)
+                    })
+                }
+                const orderedData = Array.from(headerSet).map(function (key, _index) {
+                    return row.get(key)
+                })
+                return orderedData.join(',')
+            })
+            const rows = [Array.from(headerSet).join(',')]
+            fs.writeFileSync(lastFileRef, rows.concat(dataRows).join("\n"));
         }
     }
 
@@ -74,7 +88,7 @@ export async function actionExportCsv(options: ActionOptions) {
         const epoch = clock.timestamp.toDate().valueOf();
         if (epoch / 1000 % scrapeInterval != 0) return; // only handle epoch intervals
         const metrics = await register.metrics();
-        const csvData = extractMetrics(metrics, epoch)
+        const csvRow = extractMetrics(metrics, epoch)
 
         // compute target path
         const block_folder = Math.floor(block_num / folderGranular) * folderGranular
@@ -99,9 +113,9 @@ export async function actionExportCsv(options: ActionOptions) {
             if (lastFileRef != outFilePath) {
                 writeCsvRowsToFile();
                 lastFileRef = outFilePath
-                fileRows = [csvData[0]] // csv header
+                allData = []
             }
-            fileRows.push(csvData[1]) // csv data
+            allData.push(csvRow) // csv data
         } catch (err) {
             logger.error(err);
         }
@@ -129,7 +143,7 @@ export async function actionExportCsv(options: ActionOptions) {
 
     let lastPathRef: string = ""
     let lastFileRef: string = ""
-    let fileRows: string[] = []
+    let allData: Row[];
 
     // Run substreams
     const emitter = await setup(options, pkg);
@@ -142,8 +156,11 @@ export async function actionExportCsv(options: ActionOptions) {
         handleExport(scrapeInterval, clock);
     });
 
+    //    emitter.on("end", function () {
+    //   });
+
     // Start streaming
-    emitter.start();
+    emitter.start(options.delayBeforeStart);
 }
 
 //////////////////////////////////////////////////////////

@@ -50,7 +50,7 @@
         "@vercel/ncc": "0.36.x",
         "pkg": "latest",
         "tsup": "latest",
-        "typescript": "latest",
-        "tsx": "latest"
+        "tsx": "latest",
+        "typescript": "latest"
     }
 }
