@@ -6,7 +6,6 @@ import { createHash } from "substreams";
 import { Clock } from "substreams";
 import * as fs from 'fs';
 import { fetchSubstream } from "@substreams/core";
-//import * as csvwriter from 'csv-writer'
 
 const EPOCH_HEADER = "#epoch"
 type Row = Map<string, string>
@@ -62,21 +61,45 @@ export async function actionExportCsv(options: ActionOptions) {
     }
 
     function writeCsvRowsToFile() {
+        const colDelimiter = ","
+        const rowDelimiter = "\n"
         if (lastFileRef.length !== 0) {
             const headerSet = new Set<string>()
-            const dataRows = allData.map(function (row, _index) {
+            let refIndex = -1;
+            const dataRows = allData.map(function (row, index) {
                 if (row.size > headerSet.size) {
                     row.forEach((_val, key) => {
                         headerSet.add(key)
                     })
+                    refIndex = index;
                 }
                 const orderedData = Array.from(headerSet).map(function (key, _index) {
                     return row.get(key)
                 })
-                return orderedData.join(',')
+                return orderedData.join(colDelimiter)
             })
-            const rows = [Array.from(headerSet).join(',')]
-            fs.writeFileSync(lastFileRef, rows.concat(dataRows).join("\n"));
+            const rows = [Array.from(headerSet).join(colDelimiter)]
+            const body = () => {
+                if (refIndex == 0) {
+                    // returned unaltered rows
+                    return rows.concat(dataRows).join(rowDelimiter)
+                } else {
+                    // pad rows with missing values
+                    const dataRowsFixed = dataRows.map(function (row, index) {
+                        if (index >= refIndex) {
+                            return row
+                        } else {
+                            const p: string[] = row.split(colDelimiter)
+                            while (p.length < headerSet.size) {
+                                p.push("0")
+                            }
+                            return p.join(colDelimiter)
+                        }
+                    })
+                    return rows.concat(dataRowsFixed).join(rowDelimiter)
+                }
+            }
+            fs.writeFileSync(lastFileRef, body());
         }
     }
 
