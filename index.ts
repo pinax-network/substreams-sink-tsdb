@@ -39,12 +39,8 @@ export async function action(options: ActionOptions) {
     logger.info("download", options.manifest, hash);
 
     // Run substreams
-    //const substreams = run(spkg, options);
-    //handleManifest(substreams, options.manifest, hash);
     const emitter = await setup(options, pkg);
-    emitter.on("anyMessage", (messages, cursor, clock) => {
-        //substreams.on("anyMessage", async (messages: any, _: any, clock: any) => {
-        //  handleClock(clock);
+    emitter.on("anyMessage", (messages, _cursor, clock) => {
         handleImport(url, scrapeInterval, clock);
         handleOperations(messages);
     });

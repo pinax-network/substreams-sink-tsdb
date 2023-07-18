@@ -2,10 +2,10 @@ import { logger } from "substreams-sink";
 import pkg from "../package.json";
 import { commander, setup } from "substreams-sink";
 import { handleOperations, register } from "./prom";
-import { createHash } from "substreams";
 import { Clock } from "substreams";
 import * as fs from 'fs';
-import { fetchSubstream } from "@substreams/core";
+import { createModuleHashHex } from "@substreams/core";
+import { readPackage } from "@substreams/manifest";
 
 const EPOCH_HEADER = "#epoch"
 type Row = Map<string, string>
@@ -81,7 +81,7 @@ export async function actionExportCsv(options: ActionOptions) {
             const rows = [Array.from(headerSet).join(colDelimiter)]
             const body = () => {
                 if (refIndex == 0) {
-                    // returned unaltered rows
+                    // returned unimport { readPackage } from "@substreams/manifest";altered rows
                     return rows.concat(dataRows).join(rowDelimiter)
                 } else {
                     // pad rows with missing values
@@ -154,8 +154,8 @@ export async function actionExportCsv(options: ActionOptions) {
     logger.info(`vitals: ${address} ${port} ${scrapeInterval}`)
 
     // Download substreams
-    const spkg = await fetchSubstream(options.manifest);
-    const hash = createHash(spkg.toBinary());
+    const substreamPackage = await readPackage(options.manifest);
+    const hash = await createModuleHashHex(substreamPackage.modules, options.moduleName);
     logger.info("download", options.manifest, hash);
 
     // Csv root
