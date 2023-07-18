@@ -171,19 +171,14 @@ export async function actionExportCsv(options: ActionOptions) {
     // Run substreams
     const emitter = await setup(options, pkg);
     emitter.on("anyMessage", (messages, cursor, clock) => {
-        //const substreams = run(spkg, options);
-        //handleManifest(substreams, options.manifest, hash);
-        //substreams.on("anyMessage", async (messages: any, _: any, clock: any) => {
-        // handleClock(clock);
         handleOperations(messages);
         handleExport(scrapeInterval, clock);
     });
 
-    //    emitter.on("end", function () {
-    //   });
-
     // Start streaming
-    emitter.start(options.delayBeforeStart);
+    await emitter.start(options.delayBeforeStart);
+    // write last batch
+    writeCsvRowsToFile();
 }
 
 //////////////////////////////////////////////////////////
