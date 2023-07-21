@@ -14,15 +14,20 @@ type GaugeOp = {
     value: number
 }
 
-type PrometheusOperation = {
+interface PrometheusOperation {
     name: string
     labels?: Record<string, string>,
     counter?: CounterOp
     gauge?: GaugeOp
 }
 
-type PrometheusOperations = {
+interface PrometheusOperations {
     operations: PrometheusOperation[];
+}
+
+export function handleLabels(value: string, previous: {}) {
+    const params = new URLSearchParams(value);
+    return { ...previous, ...Object.fromEntries(params) };
 }
 
 export function handleOperations(pp: any) {

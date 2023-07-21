@@ -42,7 +42,7 @@ export async function action(options: ActionOptions) {
     const emitter = await setup(options, pkg);
     emitter.on("anyMessage", (messages, _cursor, clock) => {
         handleImport(url, scrapeInterval, clock);
-        handleOperations(messages);
+        handleOperations(messages as any);
     });
 
     // Start streaming

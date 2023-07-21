@@ -3,7 +3,7 @@ import { commander } from "substreams-sink";
 import { action, DEFAULT_ADDRESS, DEFAULT_PORT, DEFAULT_SCRAPE_INTERVAL, DEFAULT_CSV_ROOT, DEFAULT_FOLDER_GRANULAR, DEFAULT_FILE_GRANULAR } from "../index"
 import { actionExportCsv, actionImportCsv } from "../src/csv"
 import pkg from "../package.json";
-import { DEFAULT_COLLECT_DEFAULT_METRICS, handleLabels } from "substreams-sink-prometheus";
+import { handleLabels } from "../src/prom";
 
 const program = commander.program(pkg);
 commander.run(program, pkg)
@@ -11,7 +11,6 @@ commander.run(program, pkg)
     .option('-a --address <string>', 'VictoriaMetrics address to connect.', DEFAULT_ADDRESS)
     .option('-i --scrape-interval <int>', 'Scrape Interval', String(DEFAULT_SCRAPE_INTERVAL))
     .option('-l --labels [...string]', "To apply generic labels to all default metrics (ex: --labels foo=bar)", handleLabels, {})
-    .option('--collect-default-metrics <boolean>', "Collect default metrics", DEFAULT_COLLECT_DEFAULT_METRICS)
     .action(action)
 
 // csv command

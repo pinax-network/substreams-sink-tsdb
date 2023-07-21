@@ -1,11 +1,11 @@
 import { logger } from "substreams-sink";
 import pkg from "../package.json";
 import { commander, setup } from "substreams-sink";
-import { handleOperations, register } from "./prom";
 import { Clock } from "substreams";
 import * as fs from 'fs';
 import { createModuleHashHex } from "@substreams/core";
 import { readPackage } from "@substreams/manifest";
+import { handleOperations, register } from "./prom";
 
 const EPOCH_HEADER = "#epoch"
 type Row = Map<string, string>
@@ -171,7 +171,7 @@ export async function actionExportCsv(options: ActionOptions) {
     // Run substreams
     const emitter = await setup(options, pkg);
     emitter.on("anyMessage", (messages, cursor, clock) => {
-        handleOperations(messages);
+        handleOperations(messages as any);
         handleExport(scrapeInterval, clock);
     });
 

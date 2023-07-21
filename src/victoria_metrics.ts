@@ -1,5 +1,6 @@
 import { Clock } from "substreams";
-import { logger, register } from "substreams-sink-prometheus"
+import { logger } from "substreams-sink";
+import { register } from "./prom"
 
 export function appendEpoch(metrics: string, epoch: number) {
     const separator = "\n";
