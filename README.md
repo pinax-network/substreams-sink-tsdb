@@ -58,10 +58,12 @@ see chart below
 
 | options | use |
 |----|---|
-| scrape-interval | interval at which metrics are being collected
-| csv-root| top folder where csv will be be created
-| folder-granular| number of blocks per subfolder |
-| file-granular| number of blocks per file|
+| --manifest| url for spkg package|
+| --module-name| spkg module to execute
+| --scrape-interval | interval at which metrics are being collected, in seconds. default is 30.
+| --csv-root| top folder where csv will be be created
+| --folder-granular| number of blocks per subfolder |
+| --file-granular| number of blocks per file|
 
 
 Breakdown of the csv folder structure is as follow:
@@ -73,20 +75,22 @@ Breakdown of the csv folder structure is as follow:
 
 **Example usage**
 
-`./bin/cli.ts  csv export  https://github.com/pinax-network/subtivity-substreams/releases/download/v0.2.1/subtivity-antelope-v0.2.1.spkg  prom_out -e https://eos.firehose.eosnation.io:9001   --production-mode false    --cursor-file antelope1.lock -s 10000000 -t +1000000 --metrics-disabled  --csv-root=test_csv_big1 --folder-granular=50000 --file-granular=1000
+`tsx ./bin/cli.ts  csv export --manifest  https://github.com/pinax-network/subtivity-substreams/releases/download/v0.2.1/subtivity-antelope-v0.2.1.spkg  --module-name prom_out -e https://eos.firehose.eosnation.io:9001      --cursor-file antelope1.lock -s 10000000 -t +1000000  --csv-root=./export_root_folder --folder-granular=50000 --file-granular=1000
 `
 
 ### csv import
 
 |options|use|
 |----|----|
-| csv-root| top folder from where the csv files will be read. 
-|labels | url encoded list of labels to append |
+|-p --port| VictoriaMetrics Listens on port number 
+|-a --address| VictoriaMetrics address to connect. (default: "0.0.0.0")
+| --csv-root| top folder from where the csv files will be read. 
+|-l --labels | url encoded list of labels to append to the data |
 
 
 **Example usage**
 
-`tsx ./bin/cli.ts  csv import  https://github.com/pinax-network/subtivity-substreams/releases/download/v0.2.1/subtivity-antelope-v0.2.1.spkg  prom_out --labels 'job=substivity&network=127.0.0.1&block_version=antelope&hostname=localhost&app=app1' --csv-root=test_csv_big1`
+`tsx ./bin/cli.ts  csv import   --labels 'job=substivity&network=127.0.0.1&block_version=antelope&hostname=localhost&app=app1' --csv-root=import_csv_folder`
 
 
 ## Performance measured
