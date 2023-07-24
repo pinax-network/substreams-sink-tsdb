@@ -32,6 +32,15 @@ $ npm install -g substreams-sink-victoria-metrics
 $ substreams-sink-victoria-metrics run [options] <spkg>
 ```
 
+**Export CSV**
+
+see chart below
+
+**Import CSV**
+
+see chart below
+
+
 ## Features
 
 - Consume `*.spkg` from:
@@ -39,6 +48,50 @@ $ substreams-sink-victoria-metrics run [options] <spkg>
   - [ ] Read from `*.spkg` local filesystem
   - [ ] Read from `substreams.yaml` local filesystem
 - [x] Handle `cursor` restart
+- [x] Export substreams results to csv files
+- [x] Import from csv to Victoriametrics
+
+## Command specific options
+
+
+### csv export 
+
+| options | use |
+|----|---|
+| --manifest| url for spkg package|
+| --module-name| spkg module to execute
+| --scrape-interval | interval at which metrics are being collected, in seconds. default is 30.
+| --csv-root| top folder where csv will be be created
+| --folder-granular| number of blocks per subfolder |
+| --file-granular| number of blocks per file|
+
+
+Breakdown of the csv folder structure is as follow:
+
+[csv-root]
+..[hash]
+....[folder]
+.......[individual csv files]
+
+**Example usage**
+
+`tsx ./bin/cli.ts  csv export --manifest  https://github.com/pinax-network/subtivity-substreams/releases/download/v0.2.1/subtivity-antelope-v0.2.1.spkg  --module-name prom_out -e https://eos.firehose.eosnation.io:9001      --cursor-file antelope1.lock -s 10000000 -t +1000000  --csv-root=./export_root_folder --folder-granular=50000 --file-granular=1000
+`
+
+### csv import
+
+|options|use|
+|----|----|
+|-p --port| VictoriaMetrics Listens on port number 
+|-a --address| VictoriaMetrics address to connect. (default: "0.0.0.0")
+| --csv-root| top folder from where the csv files will be read. 
+|-l --labels | url encoded list of labels to append to the data |
+
+
+**Example usage**
+
+`tsx ./bin/cli.ts  csv import   --labels 'job=substivity&network=127.0.0.1&block_version=antelope&hostname=localhost&app=app1' --csv-root=import_csv_folder`
+
 
 ## Performance measured
 

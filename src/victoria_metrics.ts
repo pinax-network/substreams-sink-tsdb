@@ -1,5 +1,6 @@
 import { Clock } from "substreams";
-import { logger, register } from "substreams-sink-prometheus"
+import { logger } from "substreams-sink";
+import { register } from "./prom"
 
 export function appendEpoch(metrics: string, epoch: number) {
     const separator = "\n";
@@ -10,10 +11,10 @@ export function appendEpoch(metrics: string, epoch: number) {
     return lines.join(` ${epoch}${separator}`);
 }
 
-export async function handleImport(url: string, scrape_interval: number, clock: Clock) {
-    if ( !clock.timestamp ) return; // no timestamp (yet
+export async function handleImport(url: string, scrapeInterval: number, clock: Clock) {
+    if (!clock.timestamp) return; // no timestamp (yet
     const epoch = clock.timestamp.toDate().valueOf();
-    if ( epoch / 1000 % scrape_interval != 0 ) return; // only handle epoch intervals
+    if (epoch / 1000 % scrapeInterval != 0) return; // only handle epoch intervals
     const metrics = await register.metrics();
     const body = appendEpoch(metrics, epoch);
     await fetch(url, { method: 'POST', body }).catch((error) => {

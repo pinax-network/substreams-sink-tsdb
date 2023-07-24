@@ -12,3 +12,7 @@ data
 build
 *.lock
 .DS_Store
+.vscode
+*-x64
+*-arm64
+*-x64.exe
