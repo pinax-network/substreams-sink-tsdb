@@ -1,6 +1,5 @@
-import { Clock } from "substreams";
 import { logger } from "substreams-sink";
-import { register } from "./prom"
+import { register } from "./prom.js"
 
 export function appendEpoch(metrics: string, epoch: number) {
     const separator = "\n";
@@ -11,7 +10,7 @@ export function appendEpoch(metrics: string, epoch: number) {
     return lines.join(` ${epoch}${separator}`);
 }
 
-export async function handleImport(url: string, scrapeInterval: number, clock: Clock) {
+export async function handleImport(url: string, scrapeInterval: number, clock: any) {
     if (!clock.timestamp) return; // no timestamp (yet
     const epoch = clock.timestamp.toDate().valueOf();
     if (epoch / 1000 % scrapeInterval != 0) return; // only handle epoch intervals

@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import { commander } from "substreams-sink";
-import { action, DEFAULT_ADDRESS, DEFAULT_PORT, DEFAULT_SCRAPE_INTERVAL, DEFAULT_CSV_ROOT, DEFAULT_FOLDER_GRANULAR, DEFAULT_FILE_GRANULAR } from "../index"
-import { actionExportCsv, actionImportCsv } from "../src/csv"
-import pkg from "../package.json";
-import { handleLabels } from "../src/prom";
+import { action, DEFAULT_ADDRESS, DEFAULT_PORT, DEFAULT_SCRAPE_INTERVAL, DEFAULT_CSV_ROOT, DEFAULT_FOLDER_GRANULAR, DEFAULT_FILE_GRANULAR } from "../index.js"
+import { actionExportCsv, actionImportCsv } from "../src/csv.js"
+import { handleLabels } from "../src/prom.js";
+
+import pkg from "../package.json" assert { type: "json" };
 
 const program = commander.program(pkg);
 commander.run(program, pkg)
