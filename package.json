@@ -1,6 +1,6 @@
 {
     "name": "substreams-sink-victoria-metrics",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "Substreams VictoriaMetrics sink module",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -41,8 +41,7 @@
         "linux": "npm run build && npm run rollup && ./scripts/build.linux.sh",
         "macos": "npm run build && npm run rollup && ./scripts/build.macos.sh",
         "windows": "npm run build && npm run rollup && ./scripts/build.windows.sh",
-        "test": "tsx --test **/*.spec.ts",
-        "pkg": "ncc build bin/cli.ts -o build && pkg build/index.js"
+        "test": "tsx --test **/*.spec.ts"
     },
     "dependencies": {
         "@substreams/core": "^0.1.17",
@@ -55,9 +54,7 @@
         "@tsconfig/recommended": "^1.0.2",
         "@types/node": "latest",
         "@vercel/ncc": "0.36.x",
-        "pkg": "latest",
         "rollup": "^3.26.3",
-        "tsup": "latest",
         "tsx": "latest",
         "typescript": "latest"
     }
