@@ -45,6 +45,7 @@
     },
     "dependencies": {
         "@substreams/core": "^0.1.17",
+        "glob": "^10.3.3",
         "substreams-sink": "0.7.x"
     },
     "devDependencies": {

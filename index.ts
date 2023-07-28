@@ -16,6 +16,7 @@ export const DEFAULT_COLLECT_DEFAULT_METRICS = false;
 export const DEFAULT_CSV_ROOT = './csv'
 export const DEFAULT_FOLDER_GRANULAR = 1000
 export const DEFAULT_FILE_GRANULAR = 100
+export const DEFAULT_VERBOSE = false
 
 // Custom user options interface
 export interface ActionOptions extends commander.RunOptions {
