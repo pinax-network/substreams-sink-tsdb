@@ -1,10 +1,9 @@
-import { createHash } from "substreams";
-import { commander, setup } from "substreams-sink";
-import { logger } from "substreams-sink";
-import pkg from "./package.json";
-import { fetchSubstream } from "@substreams/core";
-import { handleImport } from "./src/victoria_metrics";
-import { handleOperations } from "./src/prom";
+import { commander, setup, logger } from "substreams-sink";
+import { fetchSubstream, createHash } from "@substreams/core";
+import { handleImport } from "./src/victoria_metrics.js";
+import { handleOperations } from "./src/prom.js";
+
+import pkg from "./package.json" assert { type: "json" };
 
 logger.setName(pkg.name);
 export { logger };
@@ -39,12 +38,12 @@ export async function action(options: ActionOptions) {
     logger.info("download", options.manifest, hash);
 
     // Run substreams
-    const emitter = await setup(options, pkg);
+    const { emitter } = await setup(options, pkg);
     emitter.on("anyMessage", (messages, _cursor, clock) => {
         handleImport(url, scrapeInterval, clock);
         handleOperations(messages as any);
     });
 
     // Start streaming
-    emitter.start(options.delayBeforeStart);
+    emitter.start();
 }

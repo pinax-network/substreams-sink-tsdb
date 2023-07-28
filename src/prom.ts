@@ -1,5 +1,4 @@
-import { Clock } from 'substreams';
-import { logger } from "../index";
+import { logger } from "../index.js";
 import { Counter, Gauge, Histogram, Summary } from "prom-client";
 import client from "prom-client";
 export const register = new client.Registry();
@@ -68,7 +67,7 @@ export function handleManifest(substreams: any, manifest: string, hash: string) 
     }).set(1)
 }
 
-export function handleClock(clock: Clock) {
+export function handleClock(clock: any) {
     logger.info("clock", clock);
     const block_num = Number(clock.number);
     const seconds = Number(clock.timestamp?.seconds);

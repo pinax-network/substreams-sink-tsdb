@@ -1,11 +1,10 @@
-import { logger } from "substreams-sink";
-import pkg from "../package.json";
-import { commander, setup } from "substreams-sink";
-import { Clock } from "substreams";
+import { commander, logger, setup } from "substreams-sink";
 import * as fs from 'fs';
 import { createModuleHashHex } from "@substreams/core";
 import { readPackage } from "@substreams/manifest";
-import { handleOperations, register } from "./prom";
+import { handleOperations, register } from "./prom.js";
+
+import pkg from "../package.json" assert { type: "json" };
 
 const EPOCH_HEADER = "#epoch"
 type Row = Map<string, string>
@@ -103,7 +102,7 @@ export async function actionExportCsv(options: ActionOptions) {
         }
     }
 
-    async function handleExport(scrapeInterval: number, clock: Clock) {
+    async function handleExport(scrapeInterval: number, clock: any) {
         logger.info(`*** handleExport ${scrapeInterval}`)
         const block_num = Number(clock.number);
 
@@ -155,7 +154,7 @@ export async function actionExportCsv(options: ActionOptions) {
 
     // Download substreams
     const substreamPackage = await readPackage(options.manifest);
-    const hash = await createModuleHashHex(substreamPackage.modules, options.moduleName);
+    const hash = await createModuleHashHex(substreamPackage.modules!, options.moduleName);
     logger.info("download", options.manifest, hash);
 
     // Csv root
@@ -169,7 +168,7 @@ export async function actionExportCsv(options: ActionOptions) {
     let allData: Row[];
 
     // Run substreams
-    const emitter = await setup(options, pkg);
+    const { emitter } = await setup(options, pkg);
     emitter.on("anyMessage", (messages, cursor, clock) => {
         handleOperations(messages as any);
         handleExport(scrapeInterval, clock);
