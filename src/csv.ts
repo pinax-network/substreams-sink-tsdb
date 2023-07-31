@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import { createModuleHashHex } from "@substreams/core";
 import { readPackage } from "@substreams/manifest";
 import { handleOperations, register } from "./prom.js";
+import { glob } from "glob"
 
 import pkg from "../package.json" assert { type: "json" };
 
@@ -18,7 +19,8 @@ export interface ActionOptions extends commander.RunOptions {
     csvRoot: string;
     folderGranular: number;
     fileGranular: number;
-    manifest: string
+    manifest: string;
+    verbose: boolean;
 }
 
 function getCsvRoot(rootValue: string) {
@@ -80,7 +82,7 @@ export async function actionExportCsv(options: ActionOptions) {
             const rows = [Array.from(headerSet).join(colDelimiter)]
             const body = () => {
                 if (refIndex == 0) {
-                    // returned unimport { readPackage } from "@substreams/manifest";altered rows
+                    // returned unaltered rows
                     return rows.concat(dataRows).join(rowDelimiter)
                 } else {
                     // pad rows with missing values
@@ -146,7 +148,6 @@ export async function actionExportCsv(options: ActionOptions) {
     // Get command options
     const { address, port, scrapeInterval } = options;
 
-    //logger.info(`manifest: ${manifest} moduleName: ${moduleName}`)
     logger.info("options:", options)
     console.log(options)
 
@@ -232,24 +233,13 @@ export async function actionImportCsv(options: ActionOptions) {
         }
     }
 
-    async function SearchSubFolders(root: string) {
-        const fileList: string[] = []
-        fs.readdirSync(root).forEach(object => {
-            if (object != "." && object != "..") {
-                const path = `${root}/${object}`
-                if (fs.lstatSync(path).isDirectory()) {
-                    SearchSubFolders(path)
-                } else if (fs.lstatSync(path).isFile() && path.endsWith(".csv")) {
-                    fileList.push(path)
-                }
-            }
-        });
-        for (const path of fileList) {
-            await processMetrics(path)
-        }
-    }
-
     console.log(options)
+    if (options.verbose) {
+        logger.enable()
+    }
     const csvRoot = getCsvRoot(options.csvRoot)
-    await SearchSubFolders(csvRoot)
+    const files = await glob(csvRoot + "/**/*.csv")
+    for (const file of files) {
+        await processMetrics(file)
+    }
 }
