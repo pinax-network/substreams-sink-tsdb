@@ -46,7 +46,7 @@
     "dependencies": {
         "@substreams/core": "^0.1.17",
         "glob": "^10.3.3",
-        "substreams-sink": "0.7.x"
+        "substreams-sink": "0.8.x"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^25.0.3",
