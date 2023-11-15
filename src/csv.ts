@@ -5,8 +5,6 @@ import { readPackage } from "@substreams/manifest";
 import { handleOperations, register } from "./prom.js";
 import { glob } from "glob"
 
-import pkg from "../package.json" assert { type: "json" };
-
 const EPOCH_HEADER = "#epoch"
 type Row = Map<string, string>
 
@@ -15,12 +13,10 @@ export interface ActionOptions extends commander.RunOptions {
     port: number;
     scrapeInterval: number;
     labels: Record<string, string>;
-    collectDefaultMetrics: boolean;
     csvRoot: string;
     folderGranular: number;
     fileGranular: number;
     manifest: string;
-    verbose: boolean;
 }
 
 function getCsvRoot(rootValue: string) {
@@ -169,14 +165,14 @@ export async function actionExportCsv(options: ActionOptions) {
     let allData: Row[];
 
     // Run substreams
-    const { emitter } = await setup(options, pkg);
+    const { emitter } = await setup(options);
     emitter.on("anyMessage", (messages, cursor, clock) => {
         handleOperations(messages as any);
         handleExport(scrapeInterval, clock);
     });
 
     // Start streaming
-    await emitter.start(options.delayBeforeStart);
+    await emitter.start();
     // write last batch
     writeCsvRowsToFile();
 }

@@ -24,7 +24,6 @@ export interface ActionOptions extends commander.RunOptions {
     port: number;
     scrapeInterval: number;
     labels: Object;
-    collectDefaultMetrics: boolean;
     manifest: string
 }
 
@@ -39,7 +38,7 @@ export async function action(options: ActionOptions) {
     logger.info("download", options.manifest, hash);
 
     // Run substreams
-    const { emitter } = await setup(options, pkg);
+    const { emitter } = await setup(options);
     emitter.on("anyMessage", (messages, _cursor, clock) => {
         handleImport(url, scrapeInterval, clock);
         handleOperations(messages as any);

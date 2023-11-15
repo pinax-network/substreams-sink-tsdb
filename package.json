@@ -44,9 +44,9 @@
         "test": "tsx --test **/*.spec.ts"
     },
     "dependencies": {
-        "@substreams/core": "^0.1.17",
-        "glob": "^10.3.3",
-        "substreams-sink": "0.8.x"
+        "@substreams/core": "^0.7.x",
+        "glob": "^10.3.10",
+        "substreams-sink": "0.12.x"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^25.0.3",
