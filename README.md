@@ -36,16 +36,56 @@ $ substreams-sink-victoria-metrics run [options] <spkg>
 
 ## Command specific options
 
+### Run
+
+```bash
+Usage: substreams-sink-victoria-metrics run [options]
+
+Substreams VictoriaMetrics sink module
+
+Options:
+  -e --substreams-endpoint <string>    Substreams gRPC endpoint to stream data from (env: SUBSTREAMS_ENDPOINT)
+  --manifest <string>                  URL of Substreams package (env: MANIFEST)
+  --module-name <string>               Name of the output module (declared in the manifest) (env: MODULE_NAME)
+  -s --start-block <int>               Start block to stream from (defaults to -1, which means the initialBlock of the first module you are streaming) (default: "-1", env: START_BLOCK)
+  -t --stop-block <int>                Stop block to end stream at, inclusively (env: STOP_BLOCK)
+  -p, --params <string...>             Set a params for parameterizable modules. Can be specified multiple times. (ex: -p module1=valA -p module2=valX&valY) (default: [], env: PARAMS)
+  --substreams-api-token <string>      API token for the substream endpoint or API key if '--auth-issue-url' is specified (default: "", env: SUBSTREAMS_API_TOKEN)
+  --auth-issue-url <string>            URL used to issue a token (default: "https://auth.pinax.network/v1/auth/issue", env: AUTH_ISSUE_URL)
+  --delay-before-start <int>           Delay (ms) before starting Substreams (default: 0, env: DELAY_BEFORE_START)
+  --cursor-path <string>               File path or URL to cursor lock file (default: "cursor.lock", env: CURSOR_PATH)
+  --http-cursor-auth <string>          Basic auth credentials for http cursor (ex: username:password) (env: HTTP_CURSOR_AUTH)
+  --production-mode <boolean>          Enable production mode, allows cached substreams data if available (default: "false", env: PRODUCTION_MODE)
+  --inactivity-seconds <int>           If set, the sink will stop when inactive for over a certain amount of seconds (default: 300, env: INACTIVITY_SECONDS)
+  --hostname <string>                  The process will listen on this hostname for any HTTP and Prometheus metrics requests (default: "localhost", env: HOSTNAME)
+  --port <int>                         The process will listen on this port for any HTTP and Prometheus metrics requests (default: 9102, env: PORT)
+  --metrics-labels [string...]         To apply generic labels to all default metrics (ex: --labels foo=bar) (default: {}, env: METRICS_LABELS)
+  --collect-default-metrics <boolean>  Collect default metrics (default: "false", env: COLLECT_DEFAULT_METRICS)
+  --headers [string...]                Set headers that will be sent on every requests (ex: --headers X-HEADER=headerA) (default: {}, env: HEADERS)
+  --final-blocks-only <boolean>        Only process blocks that have pass finality, to prevent any reorg and undo signal by staying further away from the chain HEAD (default: "false", env: FINAL_BLOCKS_ONLY)
+  --verbose <boolean>                  Enable verbose logging (default: "false", env: VERBOSE)
+  -p --port <int>                      Listens on port number. (default: "8428")
+  -a --address <string>                VictoriaMetrics address to connect. (default: "0.0.0.0")
+  -i --scrape-interval <int>           Scrape Interval (default: "30")
+  -l --labels [...string]              To apply generic labels to all default metrics (ex: --labels foo=bar) (default: {})
+  -h, --help                           display help for command
+```
+
 ### CSV export
 
-| options | use |
-|----|---|
-| --manifest| url for spkg package|
-| --module-name| spkg module to execute
-| --scrape-interval | interval at which metrics are being collected, in seconds. default is 30.
-| --csv-root| top folder where csv will be be created
-| --folder-granular| number of blocks per subfolder |
-| --file-granular| number of blocks per file|
+```bash
+Usage: substreams-sink-victoria-metrics csv export [options]
+
+Export CSV files from Substreams
+
+Options:
+  <...>
+  -i --scrape-interval <int>           Scrape Interval (seconds) (default: "30")
+  --csv-root <string>                  CSV root (default: "./csv")
+  --folder-granular <int>              folder granular (default: 1000) (default: "1000")
+  --file-granular <int>                file granular (default: 100) (default: "100")
+  -h, --help                           display help for command
+  ```
 
 ## Folder structure
 
@@ -58,18 +98,25 @@ Breakdown of the csv folder structure is as follow:
 
 **Example usage**
 
-`tsx ./bin/cli.ts  csv export --manifest  https://github.com/pinax-network/subtivity-substreams/releases/download/v0.2.1/subtivity-antelope-v0.2.1.spkg  --module-name prom_out -e https://eos.firehose.eosnation.io:9001      --cursor-file antelope1.lock -s 10000000 -t +1000000  --csv-root=./export_root_folder --folder-granular=50000 --file-granular=1000
-`
+```bash
+substreams-sink-victoria-metrics csv export --manifest https://github.com/pinax-network/subtivity-substreams/releases/download/v0.2.1/subtivity-antelope-v0.2.1.spkg --module-name prom_out -e https://eos.firehose.eosnation.io:9001 --cursor-file antelope1.lock -s 10000000 -t +1000000 --csv-root=./export_root_folder --folder-granular=50000 --file-granular=1000
+```
 
-### csv import
+### Import CSV
 
-|options|use|
-|----|----|
-|-p --port| VictoriaMetrics Listens on port number 
-|-a --address| VictoriaMetrics address to connect. (default: "0.0.0.0")
-| --csv-root| top folder from where the csv files will be read. 
-|-l --labels | url encoded list of labels to append to the data |
+```bash
+Usage: substreams-sink-victoria-metrics csv import [options]
 
+Import CSV files to VictoriaMetrics
+
+Options:
+  --verbose                Enable verbose logging (default: false)
+  -p --port <int>          Listens on port number. (default: "8428")
+  -a --address <string>    VictoriaMetrics address to connect. (default: "0.0.0.0")
+  --csv-root <string>      CSV root (default: "./csv")
+  -l --labels [...string]  To apply generic labels to all default metrics (ex: --labels foo=bar) (default: {})
+  -h, --help               display help for command
+```
 
 **Example usage**
 

@@ -18,7 +18,7 @@ commander.run(program, pkg)
 const cmdCsv = program.command("csv").description("Additional csv options")
 // csv export
 commander.run(cmdCsv, pkg).name("export")
-    .description("Export CSV")
+    .description("Export CSV files from Substreams")
     .option('-i --scrape-interval <int>', 'Scrape Interval (seconds)', String(DEFAULT_SCRAPE_INTERVAL))
     .option('--csv-root <string>', 'CSV root', String(DEFAULT_CSV_ROOT))
     .option('--folder-granular <int>', `folder granular (default: ${DEFAULT_FOLDER_GRANULAR})`, String(DEFAULT_FOLDER_GRANULAR))
@@ -27,7 +27,7 @@ commander.run(cmdCsv, pkg).name("export")
 
 // csv import
 cmdCsv.command("import")
-    .description("Import csv")
+    .description("Import CSV files to VictoriaMetrics")
     .option('--verbose', 'Enable verbose logging', DEFAULT_VERBOSE)
     .option('-p --port <int>', 'Listens on port number.', String(DEFAULT_PORT))
     .option('-a --address <string>', 'VictoriaMetrics address to connect.', DEFAULT_ADDRESS)
