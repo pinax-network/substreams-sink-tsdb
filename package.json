@@ -1,6 +1,6 @@
 {
     "name": "substreams-sink-victoria-metrics",
-    "version": "0.0.10",
+    "version": "0.0.11",
     "description": "Substreams VictoriaMetrics sink module",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -36,27 +36,17 @@
     "license": "MIT OR Apache-2.0",
     "scripts": {
         "prepublishOnly": "tsc",
-        "build": "tsc",
-        "rollup": "rollup --config rollup.config.mjs",
-        "linux": "npm run build && npm run rollup && ./scripts/build.linux.sh",
-        "macos": "npm run build && npm run rollup && ./scripts/build.macos.sh",
-        "windows": "npm run build && npm run rollup && ./scripts/build.windows.sh",
-        "test": "tsx --test **/*.spec.ts"
+        "build": "bun build --compile ./index.ts --outfile substreams-sink-victoria-metrics",
+        "pretest": "bunx tsc --noEmit",
+        "test": "bun test"
     },
     "dependencies": {
-        "@substreams/core": "^0.7.x",
-        "glob": "^10.3.10",
-        "substreams-sink": "0.12.x"
+        "@substreams/core": "^0.7.0",
+        "glob": "latest",
+        "substreams-sink": "^0.13.0"
     },
     "devDependencies": {
-        "@rollup/plugin-commonjs": "^25.0.3",
-        "@rollup/plugin-json": "^6.0.0",
-        "@rollup/plugin-node-resolve": "^15.1.0",
-        "@tsconfig/recommended": "^1.0.2",
-        "@types/node": "latest",
-        "@vercel/ncc": "0.36.x",
-        "rollup": "^3.26.3",
-        "tsx": "latest",
+        "bun-types": "latest",
         "typescript": "latest"
     }
 }

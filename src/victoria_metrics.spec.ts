@@ -1,6 +1,6 @@
-import assert from 'node:assert';
-import { describe, it } from 'node:test';
-import { appendEpoch } from "../src/victoria_metrics";
+import { describe, it } from "bun:test";
+import assert from "node:assert";
+import { appendEpoch } from "./victoria_metrics.js";
 
 const lines =`
 # HELP process_cpu_user_seconds_total Total user CPU time spent in seconds.
