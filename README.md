@@ -1,9 +1,5 @@
 # [`Substreams`](https://substreams.streamingfast.io/) [`VictoriaMetrics`](https://victoriametrics.com/) CLI `Node.js`
 
-[<img alt="github" src="" height="20">](https://github.com/pinax-network/substreams-sink-victoria-metrics)
-[<img alt="npm" src="" height="20">](https://www.npmjs.com/package/substreams-sink-victoria-metrics)
-[<img alt="GitHub Workflow Status" src="" height="20">](https://github.com/pinax-network/substreams-sink-victoria-metrics/actions?query=branch%3Amain)
-
 > `substreams-sink-victoria-metrics` is a tool that allows developers to pipe data extracted from a blockchain to a VictoriaMetrics TSDB (Time Series Database).
 
 ## 📖 Documentation
@@ -13,14 +9,15 @@
 ### Further resources
 
 - [**Substreams** documentation](https://substreams.streamingfast.io)
+- [**`Victoria Metrics`**](https://victoriametrics.com/)
 
 ### Protobuf
 
 ## CLI
 [**Use pre-built binaries**](https://github.com/pinax-network/substreams-sink-victoria-metrics/releases)
-- [x] MacOS
+- [ ] MacOS
 - [x] Linux
-- [x] Windows
+- [ ] Windows
 
 **Install** globally via npm
 ```
@@ -32,29 +29,14 @@ $ npm install -g substreams-sink-victoria-metrics
 $ substreams-sink-victoria-metrics run [options] <spkg>
 ```
 
-**Export CSV**
-
-see chart below
-
-**Import CSV**
-
-see chart below
-
-
 ## Features
 
-- Consume `*.spkg` from:
-  - [x] Load URL or IPFS
-  - [ ] Read from `*.spkg` local filesystem
-  - [ ] Read from `substreams.yaml` local filesystem
-- [x] Handle `cursor` restart
 - [x] Export substreams results to csv files
 - [x] Import from csv to Victoriametrics
 
 ## Command specific options
 
-
-### csv export 
+### CSV export
 
 | options | use |
 |----|---|
@@ -65,13 +47,14 @@ see chart below
 | --folder-granular| number of blocks per subfolder |
 | --file-granular| number of blocks per file|
 
+## Folder structure
 
 Breakdown of the csv folder structure is as follow:
 
-[csv-root]
-..[hash]
-....[folder]
-.......[individual csv files]
+- [csv-root]
+  - [module hash]
+    - [block folder]
+      - [files]*.csv
 
 **Example usage**
 
@@ -90,19 +73,20 @@ Breakdown of the csv folder structure is as follow:
 
 **Example usage**
 
-`tsx ./bin/cli.ts  csv import   --labels 'job=substivity&network=127.0.0.1&block_version=antelope&hostname=localhost&app=app1' --csv-root=import_csv_folder`
-
+```bash
+substreams-sink-victoria-metrics csv import --labels 'job=substivity&network=127.0.0.1&block_version=antelope&hostname=localhost&app=app1' --csv-root=import_csv_folder
+```
 
 ## Performance measured
 
 This is a comparison of relative speed between v1, v2 and the cache given a scrape interval of 30s.
 
 
-| Range     | Time   | blk/ s| ver| 
+| Range     | Time   | blk/ s| ver|
 |-----------|--------|-------|----|
 | 190M-195M | 38m37s | 2157  | v2
 | 200M-205M | 52m48s | 1578  | v1
-| 200M-205M | 39m10s | 2127  | cached 
+| 200M-205M | 39m10s | 2127  | cached
 | 200M-205M | 40m32s | 2055  | cached
 | 200M-205M | 33m    | 2525  | cached
 | 205M-210M | 42m17s | 1970  | v1
