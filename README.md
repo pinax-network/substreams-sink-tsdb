@@ -64,8 +64,7 @@ Options:
   --headers [string...]                Set headers that will be sent on every requests (ex: --headers X-HEADER=headerA) (default: {}, env: HEADERS)
   --final-blocks-only <boolean>        Only process blocks that have pass finality, to prevent any reorg and undo signal by staying further away from the chain HEAD (default: "false", env: FINAL_BLOCKS_ONLY)
   --verbose <boolean>                  Enable verbose logging (default: "false", env: VERBOSE)
-  -p --port <int>                      Listens on port number. (default: "8428")
-  -a --address <string>                VictoriaMetrics address to connect. (default: "0.0.0.0")
+  --host <string>                      VictoriaMetrics address to connect. (default: "http://0.0.0.0:8428")
   -i --scrape-interval <int>           Scrape Interval (default: "30")
   -l --labels [...string]              To apply generic labels to all default metrics (ex: --labels foo=bar) (default: {})
   -h, --help                           display help for command
@@ -111,8 +110,7 @@ Import CSV files to VictoriaMetrics
 
 Options:
   --verbose                Enable verbose logging (default: false)
-  -p --port <int>          Listens on port number. (default: "8428")
-  -a --address <string>    VictoriaMetrics address to connect. (default: "0.0.0.0")
+  --host <string>          VictoriaMetrics address to connect. (default: "http://0.0.0.0:8428")
   --csv-root <string>      CSV root (default: "./csv")
   -l --labels [...string]  To apply generic labels to all default metrics (ex: --labels foo=bar) (default: {})
   -h, --help               display help for command
