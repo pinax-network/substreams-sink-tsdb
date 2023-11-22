@@ -11,8 +11,6 @@ export function appendEpoch(metrics: string, epoch: number) {
 }
 
 export async function handleImport(url: string, scrapeInterval: number, clock: any) {
-    logger.info("handleImport")
-
     if (!clock.timestamp) return; // no timestamp (yet
     const epoch = clock.timestamp.toDate().valueOf();
     if (epoch / 1000 % scrapeInterval != 0) return; // only handle epoch intervals
