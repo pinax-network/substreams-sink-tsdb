@@ -9,8 +9,7 @@ const EPOCH_HEADER = "#epoch"
 type Row = Map<string, string>
 
 export interface ActionOptions extends commander.RunOptions {
-    address: string;
-    port: number;
+    host: string;
     scrapeInterval: number;
     labels: Record<string, string>;
     csvRoot: string;
@@ -141,13 +140,8 @@ export async function actionExportCsv(options: ActionOptions) {
         }
     }
 
-    // Get command options
-    const { address, port, scrapeInterval } = options;
-
     logger.info("options:", options)
-    console.log(options)
-
-    logger.info(`vitals: ${address} ${port} ${scrapeInterval}`)
+    logger.info(`vitals: ${options.host} ${options.scrapeInterval}`)
 
     // Download substreams
     const substreamPackage = await readPackage(options.manifest);
@@ -168,7 +162,7 @@ export async function actionExportCsv(options: ActionOptions) {
     const { emitter } = await setup(options);
     emitter.on("anyMessage", (messages, cursor, clock) => {
         handleOperations(messages as any);
-        handleExport(scrapeInterval, clock);
+        handleExport(options.scrapeInterval, clock);
     });
 
     // Start streaming
@@ -219,8 +213,7 @@ export async function actionImportCsv(options: ActionOptions) {
                 return injectedLabels.length !== 0 ? `${line}${csvSeparator}${injectedLabels}` : line
             }).join(lineSeparator)
 
-            const { address, port } = options;
-            const url = `http://${address}:${port}/api/v1/import/csv?format=` + mapping.join(formatSeparator)
+            const url = `${options.host}/api/v1/import/csv?format=` + mapping.join(formatSeparator)
             logger.debug(`URL: ${url}`)
             logger.debug(`BODY: ${body}`)
             await fetch(url, { method: 'POST', body }).catch((error) => {
