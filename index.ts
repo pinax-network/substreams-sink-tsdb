@@ -1,7 +1,7 @@
 import { commander, setup, logger } from "substreams-sink";
 import { fetchSubstream, createHash } from "@substreams/core";
 import { handleImport } from "./src/victoria_metrics.js";
-import { handleOperations } from "./src/prom.js";
+import { handleOperations, register } from "./src/prom.js";
 
 import pkg from "./package.json" assert { type: "json" };
 
@@ -26,6 +26,7 @@ export interface ActionOptions extends commander.RunOptions {
 }
 
 export async function action(options: ActionOptions) {
+
     const url = `${options.host}/api/v1/import/prometheus`
     logger.info("url", url)
 
@@ -34,11 +35,14 @@ export async function action(options: ActionOptions) {
     const hash = createHash(spkg.toBinary());
     logger.info("download", options.manifest, hash);
 
+    // inject labels
+    if (options.labels) register.setDefaultLabels(options.labels);
+
     // Run substreams
     const { emitter } = await setup(options);
     emitter.on("anyMessage", (messages, _cursor, clock) => {
+        handleOperations(messages);
         handleImport(url, options.scrapeInterval, clock);
-        handleOperations(messages as any);
     });
 
     // Start streaming

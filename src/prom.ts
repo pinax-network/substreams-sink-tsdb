@@ -1,7 +1,9 @@
 import { logger } from "../index.js";
 import { Counter, Gauge, Histogram, Summary } from "prom-client";
-import client from "prom-client";
-export const register = new client.Registry();
+import { prometheus } from "substreams-sink"
+// prom-client was getting confused because there was
+// more than one registy
+export const register = prometheus.registry
 
 type CounterOp = {
     operation: string

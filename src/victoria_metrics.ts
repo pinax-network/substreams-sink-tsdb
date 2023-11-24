@@ -18,5 +18,8 @@ export async function handleImport(url: string, scrapeInterval: number, clock: a
     const body = appendEpoch(metrics, epoch);
     await fetch(url, { method: 'POST', body }).catch((error) => {
         logger.error(error)
+    }).then(() => {
+        // console.log(metrics)
+        // process.exit(0);
     });
 }
