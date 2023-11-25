@@ -1,6 +1,6 @@
 {
     "name": "substreams-sink-victoria-metrics",
-    "version": "0.0.15",
+    "version": "0.0.16",
     "description": "Substreams VictoriaMetrics sink module",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -36,6 +36,7 @@
     "license": "MIT OR Apache-2.0",
     "scripts": {
         "prepublishOnly": "tsc",
+        "start": "tsc && node ./dist/bin/cli.js run",
         "build": "bun build --compile ./index.ts --outfile substreams-sink-victoria-metrics",
         "pretest": "bunx tsc --noEmit",
         "test": "bun test"
@@ -43,7 +44,7 @@
     "dependencies": {
         "@substreams/core": "^0.7.0",
         "glob": "latest",
-        "substreams-sink": "^0.13.0"
+        "substreams-sink": "^0.13.3"
     },
     "devDependencies": {
         "bun-types": "latest",
