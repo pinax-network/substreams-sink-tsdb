@@ -17,3 +17,4 @@ build
 *-arm64
 *-x64.exe
 substreams-sink-victoria-metrics
+.env
